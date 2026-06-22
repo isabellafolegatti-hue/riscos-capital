@@ -54,14 +54,14 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 .btn-back{background:none;border:1px solid var(--g2);padding:7px 14px;border-radius:7px;cursor:pointer;font-size:13px;color:#555;margin-bottom:16px;}.btn-back:hover{border-color:var(--pink);color:var(--pink);}
 .day-group{margin-bottom:20px;}
 .day-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--g2);}
-.task-row{background:#fff;border-radius:8px;padding:12px 16px;margin-bottom:8px;display:grid;grid-template-columns:56px 90px 1fr 180px 75px 110px 90px 90px;gap:8px;align-items:center;border-left:4px solid transparent;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.task-row{background:#fff;border-radius:8px;padding:10px 16px;margin-bottom:8px;display:grid;grid-template-columns:78px 120px 1fr 165px 68px 128px 78px 82px;gap:10px;align-items:center;border-left:4px solid transparent;box-shadow:0 1px 3px rgba(0,0,0,.06);}
 .task-row.t-red{background:#FFF8F8;border-left-color:var(--red);}.task-row.t-yel{background:#FFFDF5;border-left-color:var(--yellow);}.task-row.t-grn{background:#F5FDF9;border-left-color:var(--green);}.task-row.t-done{opacity:.65;}
 .task-id{font-size:11px;font-weight:700;color:#888;background:var(--g1);padding:2px 6px;border-radius:4px;text-align:center;}
 .task-dom{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;text-align:center;}
 .dom-credito{background:#EEF4FF;color:var(--blue);}.dom-capital{background:var(--pink-l);color:var(--pink);}.dom-liquidez{background:#E8F5EE;color:var(--green);}.dom-mercado{background:#FFF9E6;color:#B8860B;}.dom-operacional{background:#F0F0FF;color:#5B5BD6;}.dom-socioambiental{background:#E8F5EE;color:#2E7D32;}.dom-rsac{background:#FFF0E8;color:#C04000;}
-.task-nome{font-size:13px;font-weight:500;}.task-resp{font-size:12px;color:#666;}.task-prior{font-size:11px;}.task-status{font-size:11px;font-weight:600;}
-.task-pct-wrap{display:flex;flex-direction:column;gap:3px;}.task-pct-bar{height:4px;background:var(--g2);border-radius:2px;overflow:hidden;}.task-pct-fill{height:100%;background:var(--pink);border-radius:2px;}.task-pct-num{font-size:11px;color:#888;}
-.btn-done{background:none;border:1px solid var(--green);color:var(--green);padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;}.btn-done:hover{background:var(--green);color:#fff;}
+.task-nome{font-size:13px;font-weight:500;}.task-resp{font-size:11px;color:#555;text-align:center;}.task-prior{font-size:11px;text-align:center;}.task-status{font-size:11px;font-weight:600;text-align:center;}
+.task-pct-wrap{display:flex;flex-direction:column;gap:3px;align-items:center;}.task-pct-bar{height:4px;background:var(--g2);border-radius:2px;overflow:hidden;width:100%;}.task-pct-fill{height:100%;background:var(--pink);border-radius:2px;}.task-pct-num{font-size:11px;color:#888;text-align:center;}
+.btn-done{background:none;border:1px solid var(--green);color:var(--green);padding:5px 8px;border-radius:6px;font-size:11px;cursor:pointer;display:block;margin:0 auto;width:100%;text-align:center;}.btn-done:hover{background:var(--green);color:#fff;}
 /* TEAM PANEL */
 .team-panel{background:#fff;border-radius:10px;padding:20px 22px;margin-top:20px;box-shadow:0 1px 4px rgba(0,0,0,.07);}
 .team-panel h4{font-size:14px;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--g2);}
@@ -288,11 +288,20 @@ let state = {
 };
 
 function diasAte(p){return Math.ceil((new Date(p)-new Date(TODAY))/86400000);}
-// Sempre exibe Isabella como co-responsável quando ela não é a responsável principal
-function displayResp(resp){
-  if(!resp||resp==='Isabella Folegatti')return 'Isabella Folegatti';
-  const primeiro=resp.split(' ')[0]; // "Davi" ou "Thaís"
-  return `Isabella + ${primeiro}`;
+// Sempre exibe Isabella como co-responsável; para multi-domínio mostra todos
+function displayResp(resp, dominios){
+  const daviDoms  = new Set(['Capital','Risco de Crédito','Risco de Mercado','Risco de Liquidez']);
+  const thaisDoms = new Set(['Risco Operacional','RSAC']);
+  const doms = dominios || [];
+  const temDavi  = doms.some(d => daviDoms.has(d));
+  const temThais = doms.some(d => thaisDoms.has(d));
+  if(temDavi && temThais) return 'Isabella + Davi + Thaís';
+  if(!resp || resp==='Isabella Folegatti'){
+    if(temDavi)  return 'Isabella + Davi';
+    if(temThais) return 'Isabella + Thaís';
+    return 'Isabella Folegatti';
+  }
+  return 'Isabella + ' + resp.split(' ')[0];
 }
 function monthLabel(y,m){const n=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];return n[m-1]+'/'+y;}
 function weekRange(year,week){const d=new Date(year,0,1+(week-1)*7);const day=d.getDay()||7;d.setDate(d.getDate()+1-day);const end=new Date(d);end.setDate(d.getDate()+6);const fmt=dd=>dd.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});return fmt(d)+'–'+fmt(end);}
@@ -381,10 +390,4 @@ function renderWeeks(){
   document.getElementById('view-container').innerHTML=html;
 }
 
-function navDays(weekKey,weekNum){state.view='days';state.currentWeek=weekNum;refreshBreadcrumb();renderDays(weekKey);}
-
-function renderDays(weekKey){
-  const tasks=state.tasks.filter(t=>{const d=new Date(t.prazo);const day=d.getDay()||7;d.setDate(d.getDate()+4-day);const ys=new Date(d.getFullYear(),0,1);const wk=Math.ceil((((d-ys)/86400000)+1)/7);return d.getFullYear()+'-W'+String(wk).padStart(2,'0')===weekKey;});
-  const groups={};const dias=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-  tasks.forEach(t=>{if(!groups[t.prazo])groups[t.prazo]=[];groups[t.prazo].push(t);});
-  let html=`<button
+function navDays(weekKey,weekNum
