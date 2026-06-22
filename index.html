@@ -58,7 +58,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 .task-row.t-red{background:#FFF8F8;border-left-color:var(--red);}.task-row.t-yel{background:#FFFDF5;border-left-color:var(--yellow);}.task-row.t-grn{background:#F5FDF9;border-left-color:var(--green);}.task-row.t-done{opacity:.65;}
 .task-id{font-size:11px;font-weight:700;color:#888;background:var(--g1);padding:2px 6px;border-radius:4px;text-align:center;}
 .task-dom{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;text-align:center;}
-.dom-credito{background:#EEF4FF;color:var(--blue);}.dom-capital{background:var(--pink-l);color:var(--pink);}.dom-liquidez{background:#E8F5EE;color:var(--green);}.dom-mercado{background:#FFF9E6;color:#B8860B;}.dom-operacional{background:#F0F0FF;color:#5B5BD6;}.dom-socioambiental{background:#E8F5EE;color:#2E7D32;}
+.dom-credito{background:#EEF4FF;color:var(--blue);}.dom-capital{background:var(--pink-l);color:var(--pink);}.dom-liquidez{background:#E8F5EE;color:var(--green);}.dom-mercado{background:#FFF9E6;color:#B8860B;}.dom-operacional{background:#F0F0FF;color:#5B5BD6;}.dom-socioambiental{background:#E8F5EE;color:#2E7D32;}.dom-rsac{background:#FFF0E8;color:#C04000;}
 .task-nome{font-size:13px;font-weight:500;}.task-resp{font-size:12px;color:#666;}.task-prior{font-size:11px;}.task-status{font-size:11px;font-weight:600;}
 .task-pct-wrap{display:flex;flex-direction:column;gap:3px;}.task-pct-bar{height:4px;background:var(--g2);border-radius:2px;overflow:hidden;}.task-pct-fill{height:100%;background:var(--pink);border-radius:2px;}.task-pct-num{font-size:11px;color:#888;}
 .btn-done{background:none;border:1px solid var(--green);color:var(--green);padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;}.btn-done:hover{background:var(--green);color:#fff;}
@@ -173,8 +173,8 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
           <div class="form-group"><label>Domínio *</label>
             <select id="f-dominio" onchange="updateRespByDomain()">
               <option value="">Selecione…</option>
-              <option>Crédito</option><option>Liquidez</option><option>Mercado</option>
-              <option>Operacional</option><option>Socioambiental</option><option>Capital</option>
+              <option>Capital</option><option>Risco de Crédito</option><option>Risco de Mercado</option>
+              <option>Risco Operacional</option><option>Risco de Liquidez</option><option>RSAC</option>
             </select>
           </div>
           <div class="form-group"><label>Responsável *</label>
@@ -212,24 +212,24 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 <script>
 const TODAY = new Date().toISOString().split('T')[0];
 
-const PREFIXOS = {Crédito:'CR',Liquidez:'LQ',Mercado:'MK',Operacional:'OP',Socioambiental:'SA',Capital:'CAP'};
+const PREFIXOS = {'Risco de Crédito':'CRD','Risco de Liquidez':'LIQ','Risco de Mercado':'MRC','Risco Operacional':'OPR','RSAC':'RSC','Capital':'CAP','Crédito':'CRD','Liquidez':'LIQ','Mercado':'MRC','Operacional':'OPR','Socioambiental':'RSC'};
 
 // ─── RESPONSÁVEIS COM DOMÍNIOS ────────────────────────────────────────────────
 const RESPONSAVEIS = {
   'Isabella Folegatti': {
     email: 'isabella.folegatti@meutudo.app',
     slack: '@isabella.folegatti',
-    dominios: ['Crédito','Liquidez','Mercado','Operacional','Socioambiental','Capital'],
+    dominios: ['Capital','Risco de Crédito','Risco de Mercado','Risco Operacional','Risco de Liquidez','RSAC'],
   },
   'Thaís Hesse': {
     email: 'thais.hesse@meutudo.app',
     slack: '@thais.hesse',
-    dominios: ['Operacional','Socioambiental'],
+    dominios: ['Risco Operacional','RSAC'],
   },
   'Davi Mathielo': {
     email: 'davi.mathielo@meutudo.app',
     slack: '@davi.mathielo',
-    dominios: ['Capital','Liquidez','Crédito','Mercado'],
+    dominios: ['Capital','Risco de Liquidez','Risco de Crédito','Risco de Mercado'],
   },
 };
 
@@ -242,32 +242,68 @@ function alertRecipientsForDomain(dom) {
 
 let state = {
   tasks: [
-    {id:'CAP-002',dominio:'Capital',projeto:'ICAAP 2025',tarefa:'Calcular RWA base jun/25',responsavel:'Isabella Folegatti',prazo:'2025-07-07',status:'🔴 Atrasado',pct:70,prioridade:'🔴 Alta',obs:''},
-    {id:'CR-001', dominio:'Crédito',projeto:'Modelo ECL',tarefa:'Calibrar PD por convênio — safra 2025',responsavel:'Isabella Folegatti',prazo:'2025-07-09',status:'🔴 Atrasado',pct:60,prioridade:'🔴 Alta',obs:''},
-    {id:'OP-001', dominio:'Operacional',projeto:'Mapeamento',tarefa:'Atualizar RCSA — crédito e cobrança',responsavel:'Isabella Folegatti',prazo:'2025-07-11',status:'🔴 Atrasado',pct:80,prioridade:'🟡 Média',obs:''},
-    {id:'CAP-001',dominio:'Capital',projeto:'ICAAP 2025',tarefa:'Elaborar Plano de Capital — estrutura inicial',responsavel:'Isabella Folegatti',prazo:'2025-07-15',status:'🔴 Atrasado',pct:25,prioridade:'🔴 Alta',obs:''},
-    {id:'LQ-001', dominio:'Liquidez',projeto:'Relatório Liquidez',tarefa:'Revisar premissas saída de caixa',responsavel:'Isabella Folegatti',prazo:'2025-07-17',status:'🔴 Atrasado',pct:50,prioridade:'🟡 Média',obs:''},
-    {id:'CR-002', dominio:'Crédito',projeto:'Modelo ECL',tarefa:'Validar backtesting LGD — base dez/24',responsavel:'Isabella Folegatti',prazo:'2025-07-18',status:'🔴 Atrasado',pct:0,prioridade:'🔴 Alta',obs:''},
-    {id:'CR-003', dominio:'Crédito',projeto:'Política Crédito',tarefa:'Revisar faixas de score de corte',responsavel:'Isabella Folegatti',prazo:'2025-07-25',status:'🔴 Atrasado',pct:30,prioridade:'🟡 Média',obs:''},
-    {id:'SA-001', dominio:'Socioambiental',projeto:'PRSAC',tarefa:'Elaborar Política de Risco Socioambiental',responsavel:'Isabella Folegatti',prazo:'2025-08-06',status:'⬜ Não iniciado',pct:0,prioridade:'🟡 Média',obs:''},
-    {id:'CAP-003',dominio:'Capital',projeto:'Stress Testing',tarefa:'Definir cenários stress test — macro',responsavel:'Isabella Folegatti',prazo:'2025-08-08',status:'⬜ Não iniciado',pct:0,prioridade:'🟡 Média',obs:''},
-    {id:'OP-002', dominio:'Operacional',projeto:'Perdas Op.',tarefa:'Consolidar base de perdas operacionais 1S25',responsavel:'Isabella Folegatti',prazo:'2025-08-15',status:'⬜ Não iniciado',pct:0,prioridade:'🟢 Baixa',obs:''},
+    // ── CAPITAL (Davi Mathielo) ──────────────────────────────────────────────────
+    {id:'01-CAP001',dominio:'Capital',dominios:['Capital'],projeto:'Plano de Capital',tarefa:'Plano de Capital',responsavel:'Davi Mathielo',prazo:'2026-08-07',status:'🔵 Em andamento',pct:20,prioridade:'🔴 Alta',obs:''},
+    {id:'01-CAP002',dominio:'Capital',dominios:['Capital'],projeto:'Capital S4',tarefa:'Apuração do Patrimônio de Referência (PR) – Metodologia S4',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-CAP003',dominio:'Capital',dominios:['Capital'],projeto:'Capital S4',tarefa:'Apuração do Requerimento Mínimo de PR (Índices de Capital S4)',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-CAP004',dominio:'Capital',dominios:['Capital'],projeto:'Capital S4',tarefa:'Cálculo das Parcelas de RWA – Metodologia S4',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-CAP005',dominio:'Capital',dominios:['Capital'],projeto:'Políticas',tarefa:'Política de Gestão de Capital',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-CAP006',dominio:'Capital',dominios:['Capital'],projeto:'Políticas',tarefa:'Política de Remuneração de Administradores',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'⬜ Não iniciado',pct:0,prioridade:'🟡 Média',obs:''},
+    {id:'01-CAP007',dominio:'Capital',dominios:['Capital'],projeto:'Políticas',tarefa:'Política de Terceirização e Seleção de Prestadores',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'⬜ Não iniciado',pct:0,prioridade:'🟡 Média',obs:''},
+    {id:'01-DLO001',dominio:'Capital',dominios:['Capital'],projeto:'Regulatório BCB',tarefa:'2061 – DLO – Demonstrativo de Limites Operacionais',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-DLI001',dominio:'Capital',dominios:['Capital'],projeto:'Regulatório BCB',tarefa:'2062 – DLI – Demonstrativo de Limites Operacionais Individuais',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    // ── RISCO DE CRÉDITO (Davi Mathielo) ────────────────────────────────────────
+    {id:'01-CRD001',dominio:'Risco de Crédito',dominios:['Risco de Crédito'],projeto:'Crédito S4',tarefa:'Gerenciamento de Risco de Crédito – Adequação S4',responsavel:'Davi Mathielo',prazo:'2026-12-30',status:'🔵 Em andamento',pct:20,prioridade:'🟢 Baixa',obs:''},
+    {id:'01-CRD002',dominio:'Risco de Crédito',dominios:['Risco de Crédito'],projeto:'Estresse',tarefa:'Programa de Testes de Estresse Estruturados',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'⬜ Não iniciado',pct:0,prioridade:'🟡 Média',obs:''},
+    {id:'01-CRD003',dominio:'Risco de Crédito',dominios:['Risco de Crédito'],projeto:'Políticas',tarefa:'Política de Risco de Crédito',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    // ── RISCO DE MERCADO (Davi Mathielo) ────────────────────────────────────────
+    {id:'01-MRC001',dominio:'Risco de Mercado',dominios:['Risco de Mercado'],projeto:'IRRBB',tarefa:'IRRBB – Requerimento de Capital e Gerenciamento',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-MRC002',dominio:'Risco de Mercado',dominios:['Risco de Mercado'],projeto:'Mercado S4',tarefa:'Gerenciamento de Risco de Mercado – Estrutura S4',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'⬜ Não iniciado',pct:0,prioridade:'🟡 Média',obs:''},
+    {id:'01-MRC003',dominio:'Risco de Mercado',dominios:['Risco de Mercado'],projeto:'Políticas',tarefa:'Política de Risco de Mercado e IRRBB',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-DDR001',dominio:'Risco de Mercado',dominios:['Risco de Mercado'],projeto:'Regulatório BCB',tarefa:'2011 – DDR – Demonstrativo Diário de Requerimento de Capital e Limites Operacionais',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-DRM001',dominio:'Risco de Mercado',dominios:['Risco de Mercado'],projeto:'Regulatório BCB',tarefa:'2060 – DRM – Demonstrativo de Risco de Mercado',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    // ── RISCO DE LIQUIDEZ (Davi Mathielo) ───────────────────────────────────────
+    {id:'01-LIQ001',dominio:'Risco de Liquidez',dominios:['Risco de Liquidez'],projeto:'Liquidez S4',tarefa:'Gerenciamento de Risco de Liquidez – Adequação S4',responsavel:'Davi Mathielo',prazo:'2099-12-31',status:'✅ Aderente',pct:100,prioridade:'—',obs:''},
+    {id:'01-LIQ002',dominio:'Risco de Liquidez',dominios:['Risco de Liquidez'],projeto:'Políticas',tarefa:'Política de Risco de Liquidez',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-LIQ003',dominio:'Risco de Liquidez',dominios:['Risco de Liquidez'],projeto:'Planos',tarefa:'Plano de Contingência de Liquidez',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-DRL001',dominio:'Risco de Liquidez',dominios:['Risco de Liquidez'],projeto:'Regulatório BCB',tarefa:'2160 – DRL – Demonstrativo de Risco de Liquidez',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    // ── RISCO OPERACIONAL (Thaís Hesse) ─────────────────────────────────────────
+    {id:'01-OPR001',dominio:'Risco Operacional',dominios:['Risco Operacional'],projeto:'Operacional S4',tarefa:'Gerenciamento de Risco Operacional – Adequação S4',responsavel:'Thaís Hesse',prazo:'2026-12-30',status:'🔵 Em andamento',pct:20,prioridade:'🟢 Baixa',obs:''},
+    {id:'01-OPR002',dominio:'Risco Operacional',dominios:['Risco Operacional'],projeto:'Políticas',tarefa:'Política de Risco Operacional',responsavel:'Thaís Hesse',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-OPR003',dominio:'Risco Operacional',dominios:['Risco Operacional'],projeto:'Políticas',tarefa:'Política de Gestão de Continuidade de Negócios',responsavel:'Thaís Hesse',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-OPR004',dominio:'Risco Operacional',dominios:['Risco Operacional'],projeto:'Planos',tarefa:'Plano de Continuidade de Negócios (PCN)',responsavel:'Thaís Hesse',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    // ── RSAC (Thaís Hesse) ───────────────────────────────────────────────────────
+    {id:'01-RSC001',dominio:'RSAC',dominios:['RSAC'],projeto:'RSAC',tarefa:'Gerenciamento de Risco Social, Ambiental e Climático (RSAC)',responsavel:'Thaís Hesse',prazo:'2099-12-31',status:'✅ Aderente',pct:100,prioridade:'—',obs:''},
+    {id:'01-RSC002',dominio:'RSAC',dominios:['RSAC'],projeto:'Políticas',tarefa:'Política de Riscos Social, Ambiental e Climático (RSAC)',responsavel:'Thaís Hesse',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-RSC003',dominio:'RSAC',dominios:['RSAC'],projeto:'GRSAC',tarefa:'Relatório GRSAC – Riscos e Oportunidades Sociais, Ambientais e Climáticos',responsavel:'Thaís Hesse',prazo:'2026-12-31',status:'🔵 Em andamento',pct:10,prioridade:'🟢 Baixa',obs:''},
+    {id:'01-DRS001',dominio:'RSAC',dominios:['RSAC'],projeto:'Regulatório BCB',tarefa:'2030 – DRSAC – Documento de Risco Social, Ambiental e Climático',responsavel:'Thaís Hesse',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    // ── MULTI-DOMÍNIO (Isabella Folegatti — gestora integradora) ─────────────────
+    {id:'01-PIL001',dominio:'Capital',dominios:['Capital','Risco de Crédito','Risco de Mercado','Risco Operacional','Risco de Liquidez','RSAC'],projeto:'Pilar 3',tarefa:'Relatório de Pilar 3',responsavel:'Isabella Folegatti',prazo:'2026-11-30',status:'⬜ Não iniciado',pct:0,prioridade:'🟢 Baixa',obs:''},
+    {id:'01-COM001',dominio:'Capital',dominios:['Capital','Risco de Crédito','Risco de Mercado','Risco Operacional','Risco de Liquidez','RSAC'],projeto:'Governança',tarefa:'Comitê de Riscos – Constituição e Funcionamento (Art. 45, Res. CMN 4557/2017)',responsavel:'Isabella Folegatti',prazo:'2026-08-07',status:'🔵 Em andamento',pct:30,prioridade:'🔴 Alta',obs:''},
+    {id:'01-RAS001',dominio:'Capital',dominios:['Capital','Risco de Crédito','Risco de Mercado','Risco Operacional','Risco de Liquidez','RSAC'],projeto:'Apetite a Risco',tarefa:'Declaração de Apetite a Riscos – RAS/DAR',responsavel:'Isabella Folegatti',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-POL001',dominio:'Capital',dominios:['Capital','Risco de Crédito','Risco de Mercado','Risco Operacional','Risco de Liquidez','RSAC'],projeto:'Políticas',tarefa:'Política de Gerenciamento Integrado de Riscos',responsavel:'Isabella Folegatti',prazo:'2026-09-30',status:'⬜ Não iniciado',pct:0,prioridade:'🟡 Média',obs:''},
   ],
   view:'months', currentMonth:'', currentMonthKey:'', currentWeek:'',
   alertFilter: 'Todos',
 };
 
 function diasAte(p){return Math.ceil((new Date(p)-new Date(TODAY))/86400000);}
+// Sempre exibe Isabella como co-responsável quando ela não é a responsável principal
+function displayResp(resp){
+  if(!resp||resp==='Isabella Folegatti')return 'Isabella Folegatti';
+  const primeiro=resp.split(' ')[0]; // "Davi" ou "Thaís"
+  return `Isabella + ${primeiro}`;
+}
 function monthLabel(y,m){const n=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];return n[m-1]+'/'+y;}
 function weekRange(year,week){const d=new Date(year,0,1+(week-1)*7);const day=d.getDay()||7;d.setDate(d.getDate()+1-day);const end=new Date(d);end.setDate(d.getDate()+6);const fmt=dd=>dd.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});return fmt(d)+'–'+fmt(end);}
-function domClass(dom){const m={Crédito:'credito',Capital:'capital',Liquidez:'liquidez',Mercado:'mercado',Operacional:'operacional',Socioambiental:'socioambiental'};return 'dom-'+(m[dom]||'credito');}
-function chipClass(s){if(s.includes('Concluído'))return 'chip-concluido';if(s.includes('andamento'))return 'chip-andamento';if(s.includes('Atrasado'))return 'chip-atrasado';return 'chip-nao';}
-function rowClass(t){if(t.status.includes('Concluído'))return 't-grn t-done';const d=diasAte(t.prazo);if(d<0)return 't-red';if(d===0)return 't-yel';return '';}
+function domClass(dom){const m={'Crédito':'credito','Risco de Crédito':'credito','Capital':'capital','Liquidez':'liquidez','Risco de Liquidez':'liquidez','Mercado':'mercado','Risco de Mercado':'mercado','Operacional':'operacional','Risco Operacional':'operacional','Socioambiental':'socioambiental','RSAC':'rsac'};return 'dom-'+(m[dom]||'capital');}
+function chipClass(s){if(s.includes('Concluído')||s.includes('Aderente'))return 'chip-concluido';if(s.includes('andamento'))return 'chip-andamento';if(s.includes('Atrasado'))return 'chip-atrasado';return 'chip-nao';}
+function rowClass(t){if(t.status.includes('Concluído'))return 't-grn t-done';if(t.status.includes('Aderente'))return 't-grn';const d=diasAte(t.prazo);if(d<0)return 't-red';if(d===0)return 't-yel';return '';}
 
 // ─── KPIs ─────────────────────────────────────────────────────────────────────
 function refreshKPIs(){
   let total=0,and=0,atras=0,hoje=0,conc=0;
-  state.tasks.forEach(t=>{total++;if(t.status.includes('Concluído')){conc++;return;}const d=diasAte(t.prazo);if(d<0)atras++;else if(d===0)hoje++;if(t.status.includes('andamento'))and++;});
+  state.tasks.forEach(t=>{total++;if(t.status.includes('Concluído')||t.status.includes('Aderente')){conc++;return;}const d=diasAte(t.prazo);if(d<0)atras++;else if(d===0)hoje++;if(t.status.includes('andamento'))and++;});
   document.getElementById('kpi-total').textContent=total;
   document.getElementById('kpi-andamento').textContent=and;
   document.getElementById('kpi-atrasadas').textContent=atras;
@@ -288,7 +324,8 @@ function navMeses(){state.view='months';state.currentMonth='';state.currentWeek=
 
 function renderMonths(){
   const groups={};
-  state.tasks.forEach(t=>{const k=t.prazo.slice(0,7);if(!groups[k])groups[k]=[];groups[k].push(t);});
+  // Aderente tasks (prazo 2099) ficam fora do calendário
+  state.tasks.filter(t=>!t.status.includes('Aderente')).forEach(t=>{const k=t.prazo.slice(0,7);if(!groups[k])groups[k]=[];groups[k].push(t);});
   const keys=Object.keys(groups).sort();
   let html='';
   keys.forEach(k=>{
@@ -309,6 +346,15 @@ function renderMonths(){
       <div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div><div class="progress-pct">${pct}% concluído</div></div>
       </div></div>`;
   });
+  // Bloco especial para tarefas Aderentes
+  const aderentes=state.tasks.filter(t=>t.status.includes('Aderente'));
+  if(aderentes.length){
+    const chips=aderentes.map(t=>`<span class="task-chip chip-concluido">${t.dominio} — ${t.tarefa.slice(0,40)}${t.tarefa.length>40?'…':''}</span>`).join('');
+    html+=`<div class="month-card" style="cursor:default">
+      <div class="month-head" style="background:#00A86B"><div class="month-head-left">✅ Aderente<div class="month-head-sub">${aderentes.length} domínio${aderentes.length!==1?'s':''} já adequado${aderentes.length!==1?'s':''}</div></div>
+      <div class="month-head-right"><span class="tag tag-green">sem prazo</span></div></div>
+      <div class="month-body" style="display:flex;flex-wrap:wrap;gap:7px">${chips}</div></div>`;
+  }
   document.getElementById('view-container').innerHTML=html;
 }
 
@@ -341,139 +387,4 @@ function renderDays(weekKey){
   const tasks=state.tasks.filter(t=>{const d=new Date(t.prazo);const day=d.getDay()||7;d.setDate(d.getDate()+4-day);const ys=new Date(d.getFullYear(),0,1);const wk=Math.ceil((((d-ys)/86400000)+1)/7);return d.getFullYear()+'-W'+String(wk).padStart(2,'0')===weekKey;});
   const groups={};const dias=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
   tasks.forEach(t=>{if(!groups[t.prazo])groups[t.prazo]=[];groups[t.prazo].push(t);});
-  let html=`<button class="btn-back" onclick="navWeeks()">‹ Voltar</button>`;
-  Object.keys(groups).sort().forEach(day=>{
-    const d=new Date(day+'T12:00:00');
-    const dl=dias[d.getDay()]+' · '+d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
-    const rows=groups[day].map(t=>`<div class="task-row ${rowClass(t)}" id="row-${t.id}">
-      <div class="task-id">${t.id}</div><div class="task-dom ${domClass(t.dominio)}">${t.dominio}</div>
-      <div class="task-nome">${t.tarefa}</div><div class="task-resp">${t.responsavel}</div>
-      <div class="task-prior">${t.prioridade}</div><div class="task-status">${t.status}</div>
-      <div class="task-pct-wrap"><div class="task-pct-bar"><div class="task-pct-fill" style="width:${t.pct}%"></div></div><div class="task-pct-num">${t.pct}%</div></div>
-      ${t.status.includes('Concluído')?'<span style="font-size:18px">✅</span>':`<button class="btn-done" onclick="concludeTask('${t.id}')">✅ Concluir</button>`}
-    </div>`).join('');
-    html+=`<div class="day-group"><div class="day-label">${dl}</div>${rows}</div>`;
-  });
-  document.getElementById('view-container').innerHTML=html;
-}
-
-function concludeTask(id){
-  const t=state.tasks.find(x=>x.id===id);if(!t)return;t.status='✅ Concluído';t.pct=100;refreshKPIs();
-  const row=document.getElementById('row-'+id);
-  if(row){row.className='task-row t-grn t-done';row.querySelector('.task-status').textContent='✅ Concluído';row.querySelector('.task-pct-fill').style.width='100%';row.querySelector('.task-pct-num').textContent='100%';row.querySelector('.btn-done').outerHTML='<span style="font-size:18px">✅</span>';}
-  refreshAlertPanel();
-}
-
-// ─── TEAM PANEL ───────────────────────────────────────────────────────────────
-const domColors = {
-  Crédito:'background:#EEF4FF;color:#1D6FE8',
-  Capital:'background:#FFE6F3;color:#E0007A',
-  Liquidez:'background:#E8F5EE;color:#00A86B',
-  Mercado:'background:#FFF9E6;color:#B8860B',
-  Operacional:'background:#F0F0FF;color:#5B5BD6',
-  Socioambiental:'background:#E8F8EF;color:#2E7D32',
-};
-
-function renderTeamPanel(){
-  const html=Object.entries(RESPONSAVEIS).map(([name,info])=>{
-    const badges=info.dominios.map(d=>`<span class="dom-badge" style="${domColors[d]||''}">${d}</span>`).join('');
-    return `<div class="team-card">
-      <div class="team-name">${name}</div>
-      <div class="team-email">${info.email}</div>
-      <div class="team-domains">${badges}</div>
-    </div>`;
-  }).join('');
-  document.getElementById('team-grid').innerHTML=html;
-}
-
-// ─── ALERT PANEL ─────────────────────────────────────────────────────────────
-function renderRespFilter(){
-  const names=['Todos',...Object.keys(RESPONSAVEIS)];
-  const html=names.map(n=>`<button class="resp-btn${state.alertFilter===n?' active':''}" onclick="setAlertFilter('${n}')">${n}</button>`).join('');
-  document.getElementById('resp-filter').innerHTML=html;
-}
-
-function setAlertFilter(name){state.alertFilter=name;renderRespFilter();refreshAlertPanel();}
-
-function refreshAlertPanel(){
-  const tasks=state.tasks.filter(t=>{
-    if(t.status.includes('Concluído'))return false;
-    if(state.alertFilter==='Todos')return true;
-    // mostra tarefas onde o filtro é responsável direto OU recebe alerta pelo domínio
-    return t.responsavel===state.alertFilter || alertRecipientsForDomain(t.dominio).includes(state.alertFilter);
-  });
-  document.getElementById('alert-tbody').innerHTML=tasks.map(t=>{
-    const d=diasAte(t.prazo);
-    let badge='';
-    if(d<0)badge=`<span class="badge-atrasado">🔴 ${Math.abs(d)}d atrasada</span>`;
-    else if(d===0)badge='<span style="background:#F59E0B;color:#fff;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700">🟠 Hoje</span>';
-    else if(d<=3)badge=`<span style="background:#F59E0B;color:#fff;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700">🟡 Em ${d}d</span>`;
-    else badge=`<span class="badge-ok">✅ ${d}d</span>`;
-    return `<tr><td><b>${t.id}</b></td><td>${t.dominio}</td><td>${t.tarefa}</td><td>${t.responsavel}</td><td>${new Date(t.prazo+'T12:00:00').toLocaleDateString('pt-BR')}</td><td>${badge}</td><td>${t.pct}%</td></tr>`;
-  }).join('');
-}
-
-function sendDraftAlert(){
-  const st=document.getElementById('send-status');
-  st.className='send-status info';st.style.display='block';
-  st.textContent='✉️ Rascunho criado no Gmail — abra seus Rascunhos para enviar.';
-}
-
-// ─── MODAL ────────────────────────────────────────────────────────────────────
-function openModal(){document.getElementById('overlay').classList.add('open');renderUpdateList('');renderConcludeList();}
-function closeModal(){document.getElementById('overlay').classList.remove('open');}
-function closeModalOutside(e){if(e.target===document.getElementById('overlay'))closeModal();}
-function switchTab(el,tabId){document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');['tab-add','tab-update','tab-conclude'].forEach(id=>{document.getElementById(id).style.display=id===tabId?'block':'none';});}
-
-function updateRespByDomain(){
-  const dom=document.getElementById('f-dominio').value;
-  const resp=document.getElementById('f-resp');
-  const suggested=dom?alertRecipientsForDomain(dom):Object.keys(RESPONSAVEIS);
-  if(suggested.length===1)resp.value=suggested[0];
-}
-
-function saveTask(){
-  const tarefa=document.getElementById('f-tarefa').value.trim();const dominio=document.getElementById('f-dominio').value;const resp=document.getElementById('f-resp').value;const prazo=document.getElementById('f-prazo').value;const prioridade=document.getElementById('f-prioridade').value;const projeto=document.getElementById('f-projeto').value.trim();const obs=document.getElementById('f-obs').value.trim();
-  if(!tarefa||!dominio||!resp||!prazo){alert('Preencha os campos obrigatórios.');return;}
-  const prefix=PREFIXOS[dominio]||'XX';const existing=state.tasks.filter(t=>t.id.startsWith(prefix+'-')).length;const id=prefix+'-'+String(existing+1).padStart(3,'0');
-  const dd=diasAte(prazo);const status=dd<0?'🔴 Atrasado':'⬜ Não iniciado';
-  state.tasks.push({id,dominio,projeto,tarefa,responsavel:resp,prazo,status,pct:0,prioridade,obs});
-  refreshKPIs();if(state.view==='months')renderMonths();refreshAlertPanel();
-  document.getElementById('f-tarefa').value='';document.getElementById('f-dominio').value='';document.getElementById('f-resp').value='';document.getElementById('f-prazo').value='';document.getElementById('f-obs').value='';
-  const aiDiv=document.getElementById('ai-response');aiDiv.style.display='block';aiDiv.textContent='✅ Tarefa '+id+' registrada! Prazo: '+new Date(prazo+'T12:00:00').toLocaleDateString('pt-BR')+'.';
-}
-
-function renderUpdateList(q=''){
-  const tasks=state.tasks.filter(t=>!t.status.includes('Concluído')&&(t.id+t.tarefa+t.responsavel).toLowerCase().includes(q.toLowerCase()));
-  document.getElementById('update-list').innerHTML=tasks.map(t=>`<div class="update-row"><span class="update-id">${t.id}</span><span class="update-nome">${t.tarefa}</span><input class="update-pct" type="number" min="0" max="100" value="${t.pct}" onchange="updatePct('${t.id}',this.value)"><span class="update-status" id="ustatus-${t.id}">${t.status}</span></div>`).join('')
-    ||'<p style="color:#aaa;font-size:13px;padding:12px 0">Nenhuma tarefa ativa.</p>';
-}
-
-function updatePct(id,val){
-  const t=state.tasks.find(x=>x.id===id);if(!t)return;const pct=Math.min(100,Math.max(0,parseInt(val)||0));t.pct=pct;
-  if(pct===100)t.status='✅ Concluído';else if(pct>0)t.status='🔵 Em andamento';else t.status='⬜ Não iniciado';
-  const sp=document.getElementById('ustatus-'+id);if(sp)sp.textContent=t.status;
-  refreshKPIs();if(state.view==='months')renderMonths();
-}
-
-function renderConcludeList(){
-  const tasks=state.tasks.filter(t=>!t.status.includes('Concluído'));
-  document.getElementById('conclude-list').innerHTML=tasks.map(t=>`<div class="check-row"><input type="checkbox" id="chk-${t.id}"><span class="check-id">${t.id}</span><span class="check-nome">${t.tarefa}</span><span style="font-size:11px;color:#888">${new Date(t.prazo+'T12:00:00').toLocaleDateString('pt-BR')}</span></div>`).join('')
-    ||'<p style="color:#aaa;font-size:13px;padding:12px 0">Nenhuma tarefa pendente.</p>';
-}
-
-function concludeChecked(){
-  document.querySelectorAll('#conclude-list input[type=checkbox]:checked').forEach(cb=>{const id=cb.id.replace('chk-','');const t=state.tasks.find(x=>x.id===id);if(t){t.status='✅ Concluído';t.pct=100;}});
-  refreshKPIs();if(state.view==='months')renderMonths();renderConcludeList();
-}
-
-// ─── INIT ──────────────────────────────────────────────────────────────────────
-function init(){
-  document.getElementById('topbar-date').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'}).replace(',','');
-  state.tasks.forEach(t=>{if(!t.status.includes('Concluído')&&diasAte(t.prazo)<0&&!t.status.includes('Atrasado'))t.status='🔴 Atrasado';});
-  refreshKPIs();renderMonths();renderTeamPanel();renderRespFilter();refreshAlertPanel();
-}
-init();
-</script>
-</body>
-</html>
+  let html=`<butto
