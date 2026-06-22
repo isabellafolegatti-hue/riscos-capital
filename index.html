@@ -54,12 +54,12 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 .btn-back{background:none;border:1px solid var(--g2);padding:7px 14px;border-radius:7px;cursor:pointer;font-size:13px;color:#555;margin-bottom:16px;}.btn-back:hover{border-color:var(--pink);color:var(--pink);}
 .day-group{margin-bottom:20px;}
 .day-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--g2);}
-.task-row{background:#fff;border-radius:8px;padding:10px 16px;margin-bottom:8px;display:grid;grid-template-columns:78px 120px 1fr 165px 68px 128px 78px 82px;gap:10px;align-items:center;border-left:4px solid transparent;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.task-row{background:#fff;border-radius:8px;padding:10px 16px;margin-bottom:8px;display:grid;grid-template-columns:78px 130px 1fr 178px 65px 145px 72px 82px;gap:8px;align-items:center;border-left:4px solid transparent;box-shadow:0 1px 3px rgba(0,0,0,.06);}
 .task-row.t-red{background:#FFF8F8;border-left-color:var(--red);}.task-row.t-yel{background:#FFFDF5;border-left-color:var(--yellow);}.task-row.t-grn{background:#F5FDF9;border-left-color:var(--green);}.task-row.t-done{opacity:.65;}
-.task-id{font-size:11px;font-weight:700;color:#888;background:var(--g1);padding:2px 6px;border-radius:4px;text-align:center;}
-.task-dom{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;text-align:center;}
+.task-id{font-size:11px;font-weight:700;color:#888;background:var(--g1);padding:2px 6px;border-radius:4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.task-dom{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .dom-credito{background:#EEF4FF;color:var(--blue);}.dom-capital{background:var(--pink-l);color:var(--pink);}.dom-liquidez{background:#E8F5EE;color:var(--green);}.dom-mercado{background:#FFF9E6;color:#B8860B;}.dom-operacional{background:#F0F0FF;color:#5B5BD6;}.dom-socioambiental{background:#E8F5EE;color:#2E7D32;}.dom-rsac{background:#FFF0E8;color:#C04000;}
-.task-nome{font-size:13px;font-weight:500;}.task-resp{font-size:11px;color:#555;text-align:center;}.task-prior{font-size:11px;text-align:center;}.task-status{font-size:11px;font-weight:600;text-align:center;}
+.task-nome{font-size:13px;font-weight:500;}.task-resp{font-size:11px;color:#555;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.task-prior{font-size:11px;text-align:center;white-space:nowrap;}.task-status{font-size:11px;font-weight:600;text-align:center;white-space:nowrap;}
 .task-pct-wrap{display:flex;flex-direction:column;gap:3px;align-items:center;}.task-pct-bar{height:4px;background:var(--g2);border-radius:2px;overflow:hidden;width:100%;}.task-pct-fill{height:100%;background:var(--pink);border-radius:2px;}.task-pct-num{font-size:11px;color:#888;text-align:center;}
 .btn-done{background:none;border:1px solid var(--green);color:var(--green);padding:5px 8px;border-radius:6px;font-size:11px;cursor:pointer;display:block;margin:0 auto;width:100%;text-align:center;}.btn-done:hover{background:var(--green);color:#fff;}
 /* TEAM PANEL */
@@ -148,7 +148,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   <div class="alert-panel">
     <h4>🔔 Alertas de Tarefas</h4>
     <div class="resp-filter" id="resp-filter"></div>
-    <table class="alert-table"><thead><tr><th>ID</th><th>Domínio</th><th>Tarefa</th><th>Responsável</th><th>Prazo</th><th>Situação</th><th>%</th></tr></thead>
+    <table class="alert-table"><thead><tr><th>ID</th><th>Domínio</th><th>Tarefa</th><th>Responsável</th><th>Prazo</th><th>Situação</th><th>Dias</th></tr></thead>
     <tbody id="alert-tbody"></tbody></table>
     <div style="margin-top:14px">
       <button class="btn-send" onclick="sendDraftAlert()">✉️ Criar rascunho Gmail</button>
@@ -383,11 +383,4 @@ function renderWeeks(){
     const atrasN=g.tasks.filter(t=>diasAte(t.prazo)<0&&!t.status.includes('Concluído')).length;
     html+=`<div class="week-card${isCurrent?' current-week':''}" onclick="navDays('${k}',${g.week})">
       <div class="week-head"><div class="week-head-left">Semana ${g.week} · ${weekRange(g.year,g.week)}</div>
-      <div class="week-head-right">${isCurrent?'<span class="tag tag-pink">Semana atual</span>':''} ${atrasN>0?`<span class="tag tag-red">${atrasN} atrasada${atrasN>1?'s':''}</span>`:''}
-      <span class="chevron">›</span></div></div>
-      <div class="week-body">${chips}</div></div>`;
-  });
-  document.getElementById('view-container').innerHTML=html;
-}
-
-function navDays(weekKey,weekNum
+      <div class="week-head-right">${isCurrent?'<span class="tag tag-pink">Semana atual</span>':''} ${atrasN>0?`<span class="tag tag-red">${atrasN} atrasada${atrasN>1?'s':''}</s
