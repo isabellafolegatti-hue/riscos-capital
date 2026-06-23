@@ -545,7 +545,7 @@ function refreshAlertPanel(){
     const prazoPtBR=t.prazo==='2099-12-31'?'Aderente':new Date(t.prazo+'T12:00:00').toLocaleDateString('pt-BR');
     const dominioLabel=t.dominios&&t.dominios.length>1?t.dominios[0]+' +'+(t.dominios.length-1):t.dominio;
     const diasR=diasAte(t.prazo);const diasLabel=t.status.includes('Concluído')||t.status.includes('Aderente')?'✅':(diasR<0?`<span style="color:var(--red);font-weight:700">${diasR}d</span>`:`${diasR}d`);
-    return `<tr><td><b>${t.id}</b></td><td>${dominioLabel}</td><td>${t.tarefa}</td><td>${displayResp(t.responsavel,t.dominios)}</td><td>${prazoPtBR}</td><td>${badge}</td><td style="text-align:center">${diasLabel}</td></tr>`;
+    return `<tr><td><b>${t.id}</b></td><td>${dominioLabel}</td><td>${t.tarefa}</td><td>${displayResp(t.responsavel,t.dominios,t.soloResp)}</td><td>${prazoPtBR}</td><td>${badge}</td><td style="text-align:center">${diasLabel}</td></tr>`;
   }).join('');
 }
 
