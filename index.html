@@ -328,6 +328,16 @@ let state = {
     {id:'01-PIL001',dominio:'Capital',dominios:['Capital','Risco de Crédito','Risco de Mercado','Risco Operacional','Risco de Liquidez','RSAC'],projeto:'Pilar 3',tarefa:'Relatório de Pilar 3',responsavel:'Isabella Folegatti',prazo:'2026-11-30',status:'⬜ Não iniciado',pct:0,prioridade:'🟢 Baixa',obs:''},
     {id:'01-COM001',dominio:'Capital',dominios:['Capital','Risco de Crédito','Risco de Mercado','Risco Operacional','Risco de Liquidez','RSAC'],projeto:'Governança',tarefa:'Comitê de Riscos – Constituição e Funcionamento (Art. 45, Res. CMN 4557/2017)',responsavel:'Isabella Folegatti',prazo:'2026-08-07',status:'🔵 Em andamento',pct:30,prioridade:'🔴 Alta',obs:''},
     {id:'01-RAS001',dominio:'Capital',dominios:['Capital','Risco de Crédito','Risco de Mercado','Risco Operacional','Risco de Liquidez','RSAC'],projeto:'Apetite a Risco',tarefa:'Declaração de Apetite a Riscos – RAS/DAR',responsavel:'Isabella Folegatti',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+
+    // ── NOVAS TAREFAS (jun/2026) ─────────────────────────────────────────────────
+    {id:'01-COM002',dominio:'Capital',dominios:['Capital','Risco de Crédito','Risco de Mercado','Risco Operacional','Risco de Liquidez','RSAC'],projeto:'Comitê',tarefa:'Finalizar material do comitê de julho',responsavel:'Isabella Folegatti',prazo:'2026-06-30',status:'🔵 Em andamento',pct:10,prioridade:'🔴 Alta',obs:'',recorrencia:'A cada 30 dias'},
+    {id:'01-OPR005',dominio:'Risco Operacional',dominios:['Risco Operacional'],projeto:'PCN',tarefa:'PCN – Plano de Continuidade de Negócios',responsavel:'Thaís Hesse',prazo:'2026-08-01',status:'⬜ Não iniciado',pct:0,prioridade:'🟡 Média',obs:'',recorrencia:'Não'},
+    {id:'01-OPR006',dominio:'Risco Operacional',dominios:['Risco Operacional'],projeto:'BIA',tarefa:'BIA – Business Impact Analysis',responsavel:'Thaís Hesse',prazo:'2026-08-01',status:'⬜ Não iniciado',pct:0,prioridade:'🟡 Média',obs:'',recorrencia:'Não'},
+    {id:'01-DSH001',dominio:'Capital',dominios:['Capital','Risco de Crédito','Risco de Mercado','Risco Operacional','Risco de Liquidez','RSAC'],projeto:'Dashboard',tarefa:'Atualizar dashboard de riscos',responsavel:'Isabella Folegatti',prazo:'2026-06-30',status:'🔵 Em andamento',pct:30,prioridade:'🔴 Alta',obs:'',recorrencia:'A cada 30 dias'},
+    {id:'01-PLN001',dominio:'Capital',dominios:['Capital','Risco de Crédito','Risco de Mercado','Risco Operacional','Risco de Liquidez','RSAC'],projeto:'Plano de Capital',tarefa:'Revisão do documento – plano de capital',responsavel:'Isabella Folegatti',prazo:'2026-06-30',status:'⬜ Não iniciado',pct:0,prioridade:'🔴 Alta',obs:'',recorrencia:'Não'},
+    {id:'01-OPR007',dominio:'Risco Operacional',dominios:['Risco Operacional'],projeto:'Matriz de Riscos',tarefa:'Projeto Matriz de Riscos – dashboard',responsavel:'Thaís Hesse',prazo:'2026-09-01',status:'⬜ Não iniciado',pct:0,prioridade:'🟢 Baixa',obs:'',recorrencia:'Não'},
+    {id:'01-OPR008',dominio:'Risco Operacional',dominios:['Risco Operacional'],projeto:'Matriz de Riscos',tarefa:'Marcar reuniões com gerex – matriz de riscos',responsavel:'Isabella Folegatti',prazo:'2026-06-26',status:'⬜ Não iniciado',pct:0,prioridade:'🔴 Alta',obs:'',recorrencia:'Não',soloResp:true},
+    {id:'01-OPR009',dominio:'Risco Operacional',dominios:['Risco Operacional'],projeto:'Matriz de Riscos',tarefa:'Finalizar material da matriz de risco – apresentação gerentes executivos',responsavel:'Thaís Hesse',prazo:'2026-06-30',status:'⬜ Não iniciado',pct:0,prioridade:'🔴 Alta',obs:'',recorrencia:'Não'},
     {id:'01-POL001',dominio:'Capital',dominios:['Capital','Risco de Crédito','Risco de Mercado','Risco Operacional','Risco de Liquidez','RSAC'],projeto:'Políticas',tarefa:'Política de Gerenciamento Integrado de Riscos',responsavel:'Isabella Folegatti',prazo:'2026-09-30',status:'⬜ Não iniciado',pct:0,prioridade:'🟡 Média',obs:''},
   ],
   view:'months', currentMonth:'', currentMonthKey:'', currentWeek:'',
@@ -336,7 +346,8 @@ let state = {
 
 function diasAte(p){return Math.ceil((new Date(p)-new Date(TODAY))/86400000);}
 // Sempre exibe Isabella como co-responsável; para multi-domínio mostra todos
-function displayResp(resp, dominios){
+function displayResp(resp, dominios, soloResp){
+  if(soloResp) return resp || 'Isabella Folegatti';
   const daviDoms  = new Set(['Capital','Risco de Crédito','Risco de Mercado','Risco de Liquidez']);
   const thaisDoms = new Set(['Risco Operacional','RSAC']);
   const doms = dominios || [];
@@ -464,7 +475,7 @@ function renderDays(weekKey){
     const dl=dias[d.getDay()]+' · '+d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
     const rows=groups[day].map(t=>`<div class="task-row ${rowClass(t)}" id="row-${t.id}" onclick="toggleTaskNome(this)">
       <div class="task-id">${t.id}</div><div class="task-dom ${domClass(t.dominio)}" title="${t.dominios?t.dominios.join(', '):t.dominio}">${t.dominios&&t.dominios.length>1?t.dominio.split(' ').slice(-1)[0]+' +'+(t.dominios.length-1):t.dominio}</div>
-      <div class="task-nome">${t.tarefa}<span class="expand-hint">▼</span></div><div class="task-resp">${displayResp(t.responsavel,t.dominios)}</div>
+      <div class="task-nome">${t.tarefa}<span class="expand-hint">▼</span></div><div class="task-resp">${displayResp(t.responsavel,t.dominios,t.soloResp)}</div>
       <div class="task-prior">${t.prioridade}</div><div class="task-status">${t.status}</div>
       ${pctDiasHtml(t)}
       ${t.status.includes('Concluído')||t.status.includes('Aderente')?'<span style="font-size:18px">✅</span>':`<button class="btn-done" onclick="event.stopPropagation();concludeTask('${t.id}')">✅ Concluir</button>`}
