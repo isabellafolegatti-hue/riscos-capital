@@ -119,6 +119,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 .btn-conclude-all{background:var(--green);color:#fff;border:none;padding:9px 20px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:12px;}
 
 
+
 /* ── MOBILE ─────────────────────────────────────────────────────────────────── */
 @media(max-width:680px){
   /* topbar */
@@ -127,7 +128,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   .topbar-sub,.topbar-date{display:none;}
   .btn-new{padding:7px 12px;font-size:11px;}
 
-  /* kpi bar wraps 2x2 */
+  /* kpi: 2x2 grid */
   .kpi-bar{padding:10px 14px;flex-wrap:wrap;gap:0;}
   .kpi{flex:0 0 50%;border-right:none;border-bottom:1px solid var(--g2);}
   .kpi:nth-child(odd){border-right:1px solid var(--g2);}
@@ -137,22 +138,31 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 
   .main{padding:12px 14px;}
 
-  /* task rows: scroll horizontally — preserve desktop layout */
-  .day-group{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  .task-row{min-width:720px;cursor:pointer;}
+  /* month/week cards */
+  .month-card,.week-card{margin-bottom:10px;}
+  .month-header,.week-header{padding:12px 14px;}
+  .month-body{padding:10px 14px;}
+  .month-stats{gap:14px;}
+  .week-body{padding:10px 14px;}
 
-  /* expand on tap */
+  /* task rows: horizontal scroll to preserve desktop layout */
+  .day-group{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .task-row{min-width:700px;cursor:pointer;}
   .task-nome{cursor:pointer;}
   .task-nome.expanded{white-space:normal!important;overflow:visible!important;}
 
-  /* alert panel scroll */
-  .alert-panel{padding:14px;}
-  .alert-panel>div{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  /* alert panel: horizontal scroll */
+  .alert-panel{padding:12px 14px;}
+  .alert-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .alert-table{min-width:560px;font-size:11px;}
+  .alert-table th,.alert-table td{padding:6px 8px;}
+  /* keep tarefa column from making rows tall on mobile */
+  .alert-table td:nth-child(3){white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;}
 
-  /* team grid 1 col */
+  /* team grid */
   .team-grid{grid-template-columns:1fr;}
 
-  /* modal bottom sheet */
+  /* modal: bottom sheet */
   .overlay{align-items:flex-end;}
   .modal{width:100%;max-width:100%;border-radius:16px 16px 0 0;max-height:85vh;overflow-y:auto;}
   .form-row{grid-template-columns:1fr;}
@@ -195,8 +205,8 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   <div class="alert-panel">
     <h4>🔔 Alertas de Tarefas</h4>
     <div class="resp-filter" id="resp-filter"></div>
-    <table class="alert-table"><thead><tr><th>ID</th><th>Domínio</th><th>Tarefa</th><th>Responsável</th><th>Prazo</th><th>Situação</th><th>Dias</th></tr></thead>
-    <tbody id="alert-tbody"></tbody></table>
+    <div class="alert-scroll"><table class="alert-table"><thead><tr><th>ID</th><th>Domínio</th><th>Tarefa</th><th>Responsável</th><th>Prazo</th><th>Situação</th><th>Dias</th></tr></thead>
+    <tbody id="alert-tbody"></tbody></table></div>
     <div style="margin-top:14px">
       <button class="btn-send" onclick="sendDraftAlert()">✉️ Criar rascunho Gmail</button>
     </div>
