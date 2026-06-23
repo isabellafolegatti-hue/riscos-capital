@@ -118,56 +118,43 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 .check-nome{flex:1;font-size:12px;}.check-id{font-size:11px;color:#888;width:55px;}
 .btn-conclude-all{background:var(--green);color:#fff;border:none;padding:9px 20px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:12px;}
 
-/* ── RESPONSIVE MOBILE ──────────────────────────────────────────────────────── */
+
+/* ── MOBILE ─────────────────────────────────────────────────────────────────── */
 @media(max-width:680px){
+  /* topbar */
   .topbar{padding:0 14px;height:52px;}
   .topbar-title{font-size:14px;}
   .topbar-sub,.topbar-date{display:none;}
-  .btn-new{padding:7px 12px;font-size:12px;}
+  .btn-new{padding:7px 12px;font-size:11px;}
 
+  /* kpi bar wraps 2x2 */
   .kpi-bar{padding:10px 14px;flex-wrap:wrap;gap:0;}
   .kpi{flex:0 0 50%;border-right:none;border-bottom:1px solid var(--g2);}
-  .kpi:nth-child(1),.kpi:nth-child(3){border-right:1px solid var(--g2);}
-  .kpi:nth-last-child(-n+1){border-bottom:none;}
-  .kpi-val{font-size:24px;}
+  .kpi:nth-child(odd){border-right:1px solid var(--g2);}
+  .kpi:last-child{border-bottom:none;}
+  .kpi-val{font-size:22px;}
   .kpi-lbl{font-size:9px;}
 
   .main{padding:12px 14px;}
 
-  .task-row{
-    grid-template-columns:auto auto 1fr auto;
-    grid-template-rows:auto auto auto;
-    grid-template-areas:
-      "id   dom    status dias"
-      "nome nome   nome   nome"
-      "resp prior  .      btn";
-    gap:5px 8px;
-    padding:12px 14px;
-    cursor:pointer;
-  }
-  .task-id    {grid-area:id;}
-  .task-dom   {grid-area:dom;text-align:left;}
-  .task-nome  {grid-area:nome;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px;}
-  .task-nome.expanded{white-space:normal;overflow:visible;}
-  .task-resp  {grid-area:resp;text-align:left;max-width:140px;}
-  .task-prior {grid-area:prior;text-align:right;}
-  .task-status{grid-area:status;font-size:10px;}
-  .task-pct-wrap{grid-area:dias;min-width:48px;}
-  .btn-done   {grid-area:btn;width:auto;padding:5px 10px;white-space:nowrap;}
+  /* task rows: scroll horizontally — preserve desktop layout */
+  .day-group{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .task-row{min-width:720px;cursor:pointer;}
 
-  .expand-hint{display:inline-block;font-size:10px;color:var(--pink);margin-left:4px;vertical-align:middle;}
+  /* expand on tap */
+  .task-nome{cursor:pointer;}
+  .task-nome.expanded{white-space:normal!important;overflow:visible!important;}
 
-  .week-card,.month-card{margin-bottom:10px;}
-  .month-body{padding:12px 14px;}
-  .month-stats{gap:16px;flex-wrap:wrap;}
-
-  .alert-panel{padding:14px;overflow:hidden;}
+  /* alert panel scroll */
+  .alert-panel{padding:14px;}
   .alert-panel>div{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 
+  /* team grid 1 col */
   .team-grid{grid-template-columns:1fr;}
 
+  /* modal bottom sheet */
   .overlay{align-items:flex-end;}
-  .modal{width:100%;max-width:100%;border-radius:16px 16px 0 0;}
+  .modal{width:100%;max-width:100%;border-radius:16px 16px 0 0;max-height:85vh;overflow-y:auto;}
   .form-row{grid-template-columns:1fr;}
 }
 </style>
