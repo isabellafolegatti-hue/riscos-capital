@@ -782,7 +782,13 @@ const TK_LS       = 'mt_riscos_tk';
 // FORMATO: [{name:'Nome', email:'email@meutudo.app', token:'hex24'}]
 const VALID_TOKENS = [{"name":"Isabella Folegatti","email":"isabella.folegatti@meutudo.app","token":"6fa9747848dcb6261d4647fb"},{"name":"Thaís Hesse","email":"thais.hesse@meutudo.app","token":"1873d76b5c15c01c5b130051"},{"name":"Marcelo Almeida","email":"almeida@meutudo.app","token":"6d1f6aecfc45beb7acbf801c"}];
 
-function getUrlToken(){return new URLSearchParams(location.search).get('t')||'';}
+function getUrlToken(){
+  // suporta ?t=TOKEN (antigo) e #t=TOKEN (novo — resistente a filtros de e-mail)
+  const q=new URLSearchParams(location.search).get('t');
+  if(q)return q;
+  const h=location.hash.replace(/^#/,'');
+  return new URLSearchParams(h).get('t')||'';
+}
 function getSavedToken(){try{return localStorage.getItem(TK_LS)||'';}catch{return '';}}
 
 function validateToken(tk){
@@ -833,7 +839,7 @@ function admRenderList(){
 }
 
 function admCopyLink(token,idx){
-  navigator.clipboard.writeText(BASE_URL+'?t='+token).then(()=>{
+  navigator.clipboard.writeText(BASE_URL+'#t='+token).then(()=>{
     const btn=document.getElementById('cpbtn-'+idx);
     btn.textContent='✓ Copiado!';btn.classList.add('copied');
     setTimeout(()=>{btn.textContent='Copiar link';btn.classList.remove('copied');},2000);
@@ -842,7 +848,7 @@ function admCopyLink(token,idx){
 
 function admSendEmail(token,name,email){
   if(!email){alert('Cadastre o e-mail desta pessoa para usar este botão.');return;}
-  const link=BASE_URL+'?t='+token;
+  const link=BASE_URL+'#t='+token;
   const subject=encodeURIComponent('Seu acesso ao Painel de Riscos & Capital — meutudo');
   const body=encodeURIComponent(
     'Olá, '+name+'!\n\n'+
