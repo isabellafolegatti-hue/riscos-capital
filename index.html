@@ -264,6 +264,16 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
     <div class="aw-body">
       <p>Você não tem acesso a este painel.</p>
       <small>Solicite o link de acesso ao gestor da área de Riscos.</small>
+      <div style="margin-top:18px;border-top:1px solid #333;padding-top:16px;">
+        <p style="font-size:12px;color:#aaa;margin-bottom:8px;">Ou cole seu código de acesso abaixo:</p>
+        <div style="display:flex;gap:8px;">
+          <input id="aw-token-input" type="text" placeholder="Cole seu código aqui"
+            style="flex:1;padding:9px 12px;border-radius:8px;border:1px solid #444;background:#1a1a1a;color:#fff;font-size:13px;outline:none;">
+          <button onclick="awManualAccess()"
+            style="padding:9px 16px;background:#E0007A;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Entrar</button>
+        </div>
+        <p id="aw-token-err" style="font-size:11px;color:#E53935;margin-top:6px;display:none;">Código inválido. Verifique com a Isabella.</p>
+      </div>
     </div>
   </div>
 </div>
@@ -285,8 +295,9 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
       </div>
       <div class="adm-section">
         <h4>Publicar alterações</h4>
-        <button class="btn-export" onclick="admExport()">⬇ Baixar HTML atualizado</button>
-        <p class="export-info">⚠️ Após cada alteração, baixe o HTML e substitua no GitHub. Sem esse passo as mudanças não entram em vigor.</p>
+        <button class="btn-publish" onclick="admPublish()" style="background:#00A86B;color:#fff;border:none;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;margin-bottom:8px;">🚀 Publicar no GitHub agora</button>
+        <div id="adm-publish-status" style="font-size:12px;color:#888;margin-bottom:10px;"></div>
+        <button class="btn-export" onclick="admExport()" style="width:100%;">⬇ Baixar HTML (alternativa)</button>
       </div>
     </div>
   </div>
@@ -797,6 +808,17 @@ function validateToken(tk){
   return VALID_TOKENS.find(t=>t.token===tk)||null;
 }
 
+function awManualAccess(){
+  const tk=(document.getElementById('aw-token-input').value||'').trim();
+  const person=validateToken(tk);
+  if(!person){
+    document.getElementById('aw-token-err').style.display='block';
+    return;
+  }
+  try{localStorage.setItem(TK_LS,tk);}catch{}
+  location.replace(BASE_URL+'#t='+tk);
+}
+
 function checkAccess(){
   const tk=getUrlToken()||getSavedToken();
   const person=validateToken(tk);
@@ -876,6 +898,57 @@ function admRemove(idx){
   if(!confirm('Remover acesso de '+VALID_TOKENS[idx].name+'?'))return;
   VALID_TOKENS.splice(idx,1);
   admRenderList();
+}
+
+async function admPublish(){
+  const GH_OWNER = 'isabellafolegatti-hue';
+  const GH_REPO  = 'riscos-capital';
+  const GH_FILE  = 'index.html';
+  const statusEl = document.getElementById('adm-publish-status');
+
+  let pat = localStorage.getItem('gh_pat')||'';
+  if(!pat){
+    pat = prompt('Cole seu GitHub Personal Access Token\n(necessário apenas na primeira vez — será salvo localmente):');
+    if(!pat){statusEl.textContent='Cancelado.';return;}
+    localStorage.setItem('gh_pat',pat);
+  }
+
+  statusEl.textContent='⏳ Buscando HTML fonte...';
+  let src;
+  try{src=await fetch(location.href+'?nocache='+Date.now()).then(r=>r.text());}
+  catch{statusEl.textContent='❌ Erro ao buscar HTML fonte.';return;}
+
+  const tokenJSON=JSON.stringify(VALID_TOKENS);
+  const updated=src.replace(/const VALID_TOKENS = \[.*?\];/s,'const VALID_TOKENS = '+tokenJSON+';');
+
+  statusEl.textContent='⏳ Obtendo versão atual do GitHub...';
+  const apiBase=`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`;
+  const headers={'Authorization':'token '+pat,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'};
+
+  let sha;
+  try{
+    const r=await fetch(apiBase,{headers});
+    if(!r.ok)throw new Error(r.status);
+    const d=await r.json();
+    sha=d.sha;
+  }catch(e){
+    statusEl.textContent='❌ Token inválido ou sem permissão. Verifique e tente novamente.';
+    localStorage.removeItem('gh_pat');
+    return;
+  }
+
+  statusEl.textContent='⏳ Publicando...';
+  const content=btoa(unescape(encodeURIComponent(updated)));
+  try{
+    const r=await fetch(apiBase,{method:'PUT',headers,body:JSON.stringify({
+      message:'Atualizar acessos via painel admin',
+      content,sha
+    })});
+    if(!r.ok)throw new Error(r.status);
+    statusEl.innerHTML='✅ <b>Publicado!</b> As pessoas já poderão acessar em ~1 minuto.';
+  }catch(e){
+    statusEl.textContent='❌ Erro ao publicar: '+e.message;
+  }
 }
 
 async function admExport(){
