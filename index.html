@@ -471,7 +471,7 @@ function alertRecipientsForDomain(dom) {
 }
 
 let state = {
-  tasks: [
+  tasks: [ // ──TASKS_START──
     // ── CAPITAL (Davi Mathielo) ──────────────────────────────────────────────────
     {id:'01-CAP001',dominio:'Capital',dominios:['Capital'],projeto:'Plano de Capital',tarefa:'Plano de Capital',responsavel:'Davi Mathielo',prazo:'2026-08-07',status:'🔵 Em andamento',pct:20,prioridade:'🔴 Alta',obs:''},
     {id:'01-CAP002',dominio:'Capital',dominios:['Capital'],projeto:'Capital S4',tarefa:'Apuração do Patrimônio de Referência (PR) – Metodologia S4',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
@@ -522,7 +522,7 @@ let state = {
     {id:'01-OPR008',dominio:'Risco Operacional',dominios:['Risco Operacional'],projeto:'Matriz de Riscos',tarefa:'Marcar reuniões com gerex – matriz de riscos',responsavel:'Isabella Folegatti',prazo:'2026-06-26',status:'⬜ Não iniciado',pct:0,prioridade:'🔴 Alta',obs:'',recorrencia:'Não',soloResp:true},
     {id:'01-OPR009',dominio:'Risco Operacional',dominios:['Risco Operacional'],projeto:'Matriz de Riscos',tarefa:'Finalizar material da matriz de risco – apresentação gerentes executivos',responsavel:'Thaís Hesse',prazo:'2026-06-30',status:'⬜ Não iniciado',pct:0,prioridade:'🔴 Alta',obs:'',recorrencia:'Não'},
     {id:'01-POL001',dominio:'Capital',dominios:['Capital','Risco de Crédito','Risco de Mercado','Risco Operacional','Risco de Liquidez','RSAC'],projeto:'Políticas',tarefa:'Política de Gerenciamento Integrado de Riscos',responsavel:'Isabella Folegatti',prazo:'2026-09-30',status:'⬜ Não iniciado',pct:0,prioridade:'🟡 Média',obs:''},
-  ],
+  ], // ──TASKS_END──
   view:'months', currentMonth:'', currentMonthKey:'', currentWeek:'',
   alertFilter: 'Todos',
 };
@@ -799,9 +799,57 @@ function saveTask(){
 }
 
 function renderUpdateList(q=''){
-  const tasks=state.tasks.filter(t=>!t.status.includes('Concluído')&&!t.status.includes('Aderente')&&(t.id+t.tarefa+t.responsavel).toLowerCase().includes(q.toLowerCase()));
-  document.getElementById('update-list').innerHTML=tasks.map(t=>`<div class="update-row"><span class="update-id">${t.id}</span><span class="update-nome">${t.tarefa}</span><input class="update-pct" type="number" min="0" max="100" value="${t.pct}" onchange="updatePct('${t.id}',this.value)"><span class="update-status" id="ustatus-${t.id}">${t.status}</span></div>`).join('')
-    ||'<p style="color:#aaa;font-size:13px;padding:12px 0">Nenhuma tarefa ativa.</p>';
+  const tasks=state.tasks.filter(t=>(t.id+t.tarefa+t.responsavel).toLowerCase().includes(q.toLowerCase()));
+  document.getElementById('update-list').innerHTML=tasks.map(t=>`
+    <div style="padding:10px 0;border-bottom:1px solid var(--g2);">
+      <div class="update-row" style="border-bottom:none;padding-bottom:6px;">
+        <span class="update-id">${t.id}</span>
+        <span class="update-nome">${t.tarefa}</span>
+        ${t.status.includes('Concluído')||t.status.includes('Aderente')
+          ? `<span style="font-size:11px;color:var(--green);font-weight:600">${t.status}</span>`
+          : `<input class="update-pct" type="number" min="0" max="100" value="${t.pct}" onchange="updatePct('${t.id}',this.value)"><span class="update-status" id="ustatus-${t.id}">${t.status}</span>`
+        }
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;padding-left:65px;flex-wrap:wrap;">
+        ${t.anexo
+          ? `<a href="${t.anexo}" ${t.anexo.startsWith('data:')?`download="${t.anexoNome||'anexo'}"`:'target="_blank"'} style="font-size:11px;color:#1D6FE8;text-decoration:none;">📎 ${t.anexo.startsWith('data:')?t.anexoNome||'arquivo':'Ver anexo atual'}</a><span style="color:#ccc;font-size:11px">|</span>`
+          : ''
+        }
+        <input type="url" id="upd-link-${t.id}" placeholder="Link do Drive…" value="${(!t.anexo||t.anexo.startsWith('data:'))?'':t.anexo}" style="flex:1;min-width:140px;padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:11px;">
+        <label style="font-size:11px;color:#555;cursor:pointer;white-space:nowrap;background:#f5f5f5;padding:4px 8px;border-radius:6px;border:1px solid #ddd;">
+          📁 Arquivo<input type="file" style="display:none" onchange="updateAnexoFile('${t.id}',this)">
+        </label>
+        <button onclick="saveAnexo('${t.id}')" style="padding:4px 10px;background:#E0007A;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;">Salvar</button>
+        ${t.anexo?`<button onclick="removeAnexo('${t.id}')" style="padding:4px 8px;background:#f5f5f5;color:#E53935;border:1px solid #ddd;border-radius:6px;font-size:11px;cursor:pointer;">✕</button>`:''}
+      </div>
+    </div>`).join('')
+    ||'<p style="color:#aaa;font-size:13px;padding:12px 0">Nenhuma tarefa encontrada.</p>';
+}
+
+function saveAnexo(id){
+  const t=state.tasks.find(x=>x.id===id);if(!t)return;
+  const link=(document.getElementById('upd-link-'+id)||{}).value||'';
+  if(link){t.anexo=link.trim();t.anexoNome='';}
+  renderUpdateList(document.querySelector('.update-search')?.value||'');
+  refreshAlertPanel();
+}
+
+function updateAnexoFile(id,input){
+  const file=input.files[0];if(!file)return;
+  if(file.size>5*1024*1024){alert('Arquivo muito grande. Use até 5MB ou prefira um link do Drive.');input.value='';return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const t=state.tasks.find(x=>x.id===id);if(!t)return;
+    t.anexo=e.target.result;t.anexoNome=file.name;
+    renderUpdateList(document.querySelector('.update-search')?.value||'');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeAnexo(id){
+  const t=state.tasks.find(x=>x.id===id);if(!t)return;
+  t.anexo='';t.anexoNome='';
+  renderUpdateList(document.querySelector('.update-search')?.value||'');
 }
 
 function updatePct(id,val){
@@ -967,7 +1015,9 @@ async function admPublish(){
   catch{statusEl.textContent='❌ Erro ao buscar HTML fonte.';return;}
 
   const tokenJSON=JSON.stringify(VALID_TOKENS);
-  const updated=src.replace(/const VALID_TOKENS = \[.*?\];/s,'const VALID_TOKENS = '+tokenJSON+';');
+  const tasksInner=JSON.stringify(state.tasks).slice(1,-1);
+  let updated=src.replace(/const VALID_TOKENS = \[.*?\];/s,'const VALID_TOKENS = '+tokenJSON+';');
+  updated=updated.replace(/\/\/ ──TASKS_START──[\s\S]*?\/\/ ──TASKS_END──/,'// ──TASKS_START──\n    '+tasksInner+'\n  // ──TASKS_END──');
 
   statusEl.textContent='⏳ Obtendo versão atual do GitHub...';
   const apiBase=`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`;
@@ -1005,7 +1055,9 @@ async function admExport(){
   try{src=await fetch(location.href).then(r=>r.text());}
   catch{alert('Erro ao buscar o HTML fonte. Tente novamente.');return;}
   const tokenJSON=JSON.stringify(VALID_TOKENS);
-  const updated=src.replace(/const VALID_TOKENS = \[.*?\];/s,'const VALID_TOKENS = '+tokenJSON+';');
+  const tasksInner=JSON.stringify(state.tasks).slice(1,-1);
+  let updated=src.replace(/const VALID_TOKENS = \[.*?\];/s,'const VALID_TOKENS = '+tokenJSON+';');
+  updated=updated.replace(/\/\/ ──TASKS_START──[\s\S]*?\/\/ ──TASKS_END──/,'// ──TASKS_START──\n    '+tasksInner+'\n  // ──TASKS_END──');
   const blob=new Blob([updated],{type:'text/html;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download='index.html';a.click();
