@@ -412,6 +412,18 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
         </div>
         <div class="form-row"><div class="form-group full"><label>Projeto</label><input type="text" id="f-projeto" placeholder="Ex: ICAAP 2025"></div></div>
         <div class="form-row"><div class="form-group full"><label>Observações</label><textarea id="f-obs"></textarea></div></div>
+        <div class="form-row"><div class="form-group full">
+          <label>Anexo</label>
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <button type="button" id="btn-anexo-link" onclick="switchAnexoMode('link')" style="flex:1;padding:7px;border-radius:7px;border:2px solid #E0007A;background:#FFE6F3;color:#E0007A;font-size:12px;font-weight:600;cursor:pointer;">🔗 Link externo</button>
+            <button type="button" id="btn-anexo-file" onclick="switchAnexoMode('file')" style="flex:1;padding:7px;border-radius:7px;border:2px solid #ddd;background:#fff;color:#555;font-size:12px;font-weight:600;cursor:pointer;">📁 Arquivo do computador</button>
+          </div>
+          <div id="anexo-link-wrap"><input type="url" id="f-anexo" placeholder="https://drive.google.com/..." style="width:100%"></div>
+          <div id="anexo-file-wrap" style="display:none">
+            <input type="file" id="f-anexo-file" onchange="loadAnexoFile(this)" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:7px;background:#fafafa;font-size:13px;">
+            <div id="f-anexo-file-name" style="font-size:11px;color:#888;margin-top:4px;"></div>
+          </div>
+        </div></div>
         <button class="btn-save" onclick="saveTask()">Salvar Tarefa</button>
         <div class="ai-response" id="ai-response"></div>
       </div>
@@ -646,7 +658,8 @@ function renderDays(weekKey){
     const dl=dias[d.getDay()]+' · '+d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
     const rows=groups[day].map(t=>`<div class="task-row ${rowClass(t)}" id="row-${t.id}" onclick="toggleTaskNome(this)">
       <div class="task-id">${t.id}</div><div class="task-dom ${domClass(t.dominio)}" title="${t.dominios?t.dominios.join(', '):t.dominio}">${t.dominios&&t.dominios.length>1?t.dominio.split(' ').slice(-1)[0]+' +'+(t.dominios.length-1):t.dominio}</div>
-      <div class="task-nome">${t.tarefa}<span class="expand-hint">▼</span></div><div class="task-resp">${displayResp(t.responsavel,t.dominios,t.soloResp)}</div>
+      <div class="task-nome">${t.tarefa}<span class="expand-hint">▼</span>${t.obs?`<div class="task-obs-text">${t.obs}</div>`:''}${t.anexo?`<div style="margin-top:6px"><a href="${t.anexo}" ${t.anexo.startsWith('data:')?`download="${t.anexoNome||'anexo'}"`:'target="_blank"'} onclick="event.stopPropagation()" style="font-size:11px;color:#1D6FE8;text-decoration:none;display:inline-flex;align-items:center;gap:3px;">${t.anexo.startsWith('data:')?'📎 Baixar '+( t.anexoNome||'arquivo'):'📎 Ver anexo'}</a></div>`:''}
+      </div><div class="task-resp">${displayResp(t.responsavel,t.dominios,t.soloResp)}</div>
       <div class="task-prior">${t.prioridade}</div><div class="task-status">${t.status}</div>
       ${pctDiasHtml(t)}
       ${t.status.includes('Concluído')||t.status.includes('Aderente')?'<span style="font-size:18px">✅</span>':`<button class="btn-done" onclick="event.stopPropagation();concludeTask('${t.id}')">✅ Concluir</button>`}
@@ -739,14 +752,49 @@ function updateRespByDomain(){
   if(suggested.length===1)resp.value=suggested[0];
 }
 
+let _anexoFileData = null; // {name, dataUrl}
+
+function switchAnexoMode(mode){
+  const isLink = mode === 'link';
+  document.getElementById('anexo-link-wrap').style.display = isLink ? '' : 'none';
+  document.getElementById('anexo-file-wrap').style.display = isLink ? 'none' : '';
+  document.getElementById('btn-anexo-link').style.cssText = isLink
+    ? 'flex:1;padding:7px;border-radius:7px;border:2px solid #E0007A;background:#FFE6F3;color:#E0007A;font-size:12px;font-weight:600;cursor:pointer;'
+    : 'flex:1;padding:7px;border-radius:7px;border:2px solid #ddd;background:#fff;color:#555;font-size:12px;font-weight:600;cursor:pointer;';
+  document.getElementById('btn-anexo-file').style.cssText = isLink
+    ? 'flex:1;padding:7px;border-radius:7px;border:2px solid #ddd;background:#fff;color:#555;font-size:12px;font-weight:600;cursor:pointer;'
+    : 'flex:1;padding:7px;border-radius:7px;border:2px solid #E0007A;background:#FFE6F3;color:#E0007A;font-size:12px;font-weight:600;cursor:pointer;';
+  if(isLink) _anexoFileData = null;
+}
+
+function loadAnexoFile(input){
+  const file = input.files[0];
+  if(!file){ _anexoFileData = null; return; }
+  if(file.size > 5 * 1024 * 1024){
+    alert('Arquivo muito grande. Use arquivos de até 5MB ou prefira um link do Drive.');
+    input.value = ''; _anexoFileData = null; return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    _anexoFileData = {name: file.name, dataUrl: e.target.result};
+    document.getElementById('f-anexo-file-name').textContent = '✅ ' + file.name + ' (' + (file.size/1024).toFixed(0) + ' KB)';
+  };
+  reader.readAsDataURL(file);
+}
+
 function saveTask(){
   const tarefa=document.getElementById('f-tarefa').value.trim();const dominio=document.getElementById('f-dominio').value;const resp=document.getElementById('f-resp').value;const prazo=document.getElementById('f-prazo').value;const prioridade=document.getElementById('f-prioridade').value;const projeto=document.getElementById('f-projeto').value.trim();const obs=document.getElementById('f-obs').value.trim();
+  const linkMode=document.getElementById('anexo-link-wrap').style.display!=='none';
+  let anexo='',anexoNome='';
+  if(linkMode){anexo=document.getElementById('f-anexo').value.trim();}
+  else if(_anexoFileData){anexo=_anexoFileData.dataUrl;anexoNome=_anexoFileData.name;}
   if(!tarefa||!dominio||!resp||!prazo){alert('Preencha os campos obrigatórios.');return;}
   const prefix=PREFIXOS[dominio]||'XX';const existing=state.tasks.filter(t=>t.id.startsWith(prefix+'-')).length;const id=prefix+'-'+String(existing+1).padStart(3,'0');
   const dd=diasAte(prazo);const status=dd<0?'🔴 Atrasado':'⬜ Não iniciado';
-  state.tasks.push({id,dominio,projeto,tarefa,responsavel:resp,prazo,status,pct:0,prioridade,obs});
+  state.tasks.push({id,dominio,projeto,tarefa,responsavel:resp,prazo,status,pct:0,prioridade,obs,anexo,anexoNome});
   refreshKPIs();if(state.view==='months')renderMonths();refreshAlertPanel();
-  document.getElementById('f-tarefa').value='';document.getElementById('f-dominio').value='';document.getElementById('f-resp').value='';document.getElementById('f-prazo').value='';document.getElementById('f-obs').value='';
+  _anexoFileData=null;
+  document.getElementById('f-tarefa').value='';document.getElementById('f-dominio').value='';document.getElementById('f-resp').value='';document.getElementById('f-prazo').value='';document.getElementById('f-obs').value='';document.getElementById('f-anexo').value='';document.getElementById('f-anexo-file-name').textContent='';switchAnexoMode('link');
   const aiDiv=document.getElementById('ai-response');aiDiv.style.display='block';aiDiv.textContent='✅ Tarefa '+id+' registrada! Prazo: '+new Date(prazo+'T12:00:00').toLocaleDateString('pt-BR')+'.';
 }
 
