@@ -662,7 +662,7 @@ function renderDays(weekKey){
       <div class="task-resp">${displayResp(t.responsavel,t.dominios,t.soloResp)}</div>
       <div class="task-prior">${t.prioridade}</div><div class="task-status">${t.status}</div>
       ${pctDiasHtml(t)}
-      <div style="text-align:center">${t.anexo?`<a href="${t.anexo}" ${t.anexo.startsWith('data:')?`download="${t.anexoNome||'anexo'}"`:'target="_blank"'} onclick="event.stopPropagation()" title="${t.anexo.startsWith('data:')?(t.anexoNome||'Baixar arquivo'):'Ver anexo'}" style="font-size:18px;text-decoration:none;">📎</a>`:'<span style="color:#ddd;font-size:14px">—</span>'}</div>
+      <div style="text-align:center">${(()=>{const anx=getAnexos(t);return anx.length?anx.map((a,i)=>`<a href="${a.url}" ${a.url.startsWith('data:')?`download="${a.nome||'anexo'}"`:'target="_blank"'} onclick="event.stopPropagation()" title="${a.nome||'Anexo '+(i+1)}" style="font-size:16px;text-decoration:none;margin:0 1px;">📎</a>`).join(''):'<span style="color:#ddd;font-size:14px">—</span>';})()}</div>
       ${t.status.includes('Concluído')||t.status.includes('Aderente')?'<span style="font-size:18px">✅</span>':`<button class="btn-done" onclick="event.stopPropagation();concludeTask('${t.id}')">✅ Concluir</button>`}
     </div>`).join('');
     html+=`<div class="day-group"><div class="day-label">${dl}</div>${rows}</div>`;
@@ -730,7 +730,7 @@ function refreshAlertPanel(){
     const prazoPtBR=t.prazo==='2099-12-31'?'Aderente':new Date(t.prazo+'T12:00:00').toLocaleDateString('pt-BR');
         const dominioLabel=t.dominios&&t.dominios.length>1?t.dominios[0]+' +'+(t.dominios.length-1):t.dominio;
     const diasR=diasAte(t.prazo);const diasLabel=t.status.includes('Concluído')||t.status.includes('Aderente')?'✅':(diasR<0?`<span style="color:var(--red);font-weight:700">${diasR}d</span>`:`${diasR}d`);
-    const anexoCell=t.anexo?`<a href="${t.anexo}" ${t.anexo.startsWith('data:')?`download="${t.anexoNome||'anexo'}"`:'target="_blank"'} title="${t.anexo.startsWith('data:')?(t.anexoNome||'Baixar arquivo'):'Ver anexo'}" style="font-size:16px;text-decoration:none;">📎</a>`:'<span style="color:#ddd">—</span>';
+    const anx=getAnexos(t);const anexoCell=anx.length?anx.map((a,i)=>`<a href="${a.url}" ${a.url.startsWith('data:')?`download="${a.nome||'anexo'}"`:'target="_blank"'} title="${a.nome||'Anexo '+(i+1)}" style="font-size:15px;text-decoration:none;margin:0 1px;">📎</a>`).join(''):'<span style="color:#ddd">—</span>';
     return `<tr><td><b>${t.id}</b></td><td>${dominioLabel}</td><td>${t.tarefa}</td><td>${displayResp(t.responsavel,t.dominios,t.soloResp)}</td><td>${prazoPtBR}</td><td>${badge}</td><td style="text-align:center">${diasLabel}</td><td style="text-align:center">${anexoCell}</td></tr>`;
   }).join('');
 }
@@ -755,6 +755,15 @@ function updateRespByDomain(){
 }
 
 let _anexoFileData = null; // {name, dataUrl}
+const _pendingAnexoFile = {}; // {[taskId]: {url, nome}}
+
+function getAnexos(t){
+  if(!Array.isArray(t.anexos)){
+    t.anexos = t.anexo ? [{url:t.anexo, nome:t.anexoNome||''}] : [];
+    delete t.anexo; delete t.anexoNome;
+  }
+  return t.anexos;
+}
 
 function switchAnexoMode(mode){
   const isLink = mode === 'link';
@@ -787,13 +796,13 @@ function loadAnexoFile(input){
 function saveTask(){
   const tarefa=document.getElementById('f-tarefa').value.trim();const dominio=document.getElementById('f-dominio').value;const resp=document.getElementById('f-resp').value;const prazo=document.getElementById('f-prazo').value;const prioridade=document.getElementById('f-prioridade').value;const projeto=document.getElementById('f-projeto').value.trim();const obs=document.getElementById('f-obs').value.trim();
   const linkMode=document.getElementById('anexo-link-wrap').style.display!=='none';
-  let anexo='',anexoNome='';
-  if(linkMode){anexo=document.getElementById('f-anexo').value.trim();}
-  else if(_anexoFileData){anexo=_anexoFileData.dataUrl;anexoNome=_anexoFileData.name;}
+  const anexos=[];
+  if(linkMode){const u=document.getElementById('f-anexo').value.trim();if(u)anexos.push({url:u,nome:''});}
+  else if(_anexoFileData){anexos.push({url:_anexoFileData.dataUrl,nome:_anexoFileData.name});}
   if(!tarefa||!dominio||!resp||!prazo){alert('Preencha os campos obrigatórios.');return;}
   const prefix=PREFIXOS[dominio]||'XX';const existing=state.tasks.filter(t=>t.id.startsWith(prefix+'-')).length;const id=prefix+'-'+String(existing+1).padStart(3,'0');
   const dd=diasAte(prazo);const status=dd<0?'🔴 Atrasado':'⬜ Não iniciado';
-  state.tasks.push({id,dominio,projeto,tarefa,responsavel:resp,prazo,status,pct:0,prioridade,obs,anexo,anexoNome});
+  state.tasks.push({id,dominio,projeto,tarefa,responsavel:resp,prazo,status,pct:0,prioridade,obs,anexos});
   refreshKPIs();if(state.view==='months')renderMonths();refreshAlertPanel();
   _anexoFileData=null;
   document.getElementById('f-tarefa').value='';document.getElementById('f-dominio').value='';document.getElementById('f-resp').value='';document.getElementById('f-prazo').value='';document.getElementById('f-obs').value='';document.getElementById('f-anexo').value='';document.getElementById('f-anexo-file-name').textContent='';switchAnexoMode('link');
@@ -802,30 +811,38 @@ function saveTask(){
 
 function renderUpdateList(q=''){
   const tasks=state.tasks.filter(t=>(t.id+t.tarefa+t.responsavel).toLowerCase().includes(q.toLowerCase()));
-  document.getElementById('update-list').innerHTML=tasks.map(t=>`<div class="update-row" style="flex-wrap:wrap;row-gap:6px;"><span class="update-id">${t.id}</span><span class="update-nome" style="min-width:0">${t.tarefa}</span>${t.status.includes('Concluído')||t.status.includes('Aderente')?`<span style="font-size:11px;color:var(--green);font-weight:600;white-space:nowrap">${t.status}</span>`:`<input class="update-pct" type="number" min="0" max="100" value="${t.pct}" onchange="updatePct('${t.id}',this.value)"><span class="update-status" id="ustatus-${t.id}">${t.status}</span>`}<div style="display:flex;align-items:center;gap:5px;width:100%;padding-left:65px;">${t.anexo?`<a href="${t.anexo}" ${t.anexo.startsWith('data:')?`download="${t.anexoNome||'anexo'}"`:'target="_blank"'} style="font-size:11px;color:#1D6FE8;text-decoration:none;white-space:nowrap;flex-shrink:0">📎 ${t.anexo.startsWith('data:')?(t.anexoNome||'arquivo'):'Ver anexo'}</a><span style="color:#ccc">|</span>`:''}<input type="url" id="upd-link-${t.id}" placeholder="Link do Drive…" value="${(!t.anexo||t.anexo.startsWith('data:'))?'':t.anexo}" style="flex:1;min-width:100px;padding:3px 7px;border:1px solid #ddd;border-radius:5px;font-size:11px;"><label style="font-size:11px;cursor:pointer;white-space:nowrap;background:#f5f5f5;padding:3px 8px;border-radius:5px;border:1px solid #ddd;flex-shrink:0">📁 Arquivo<input type="file" style="display:none" onchange="updateAnexoFile('${t.id}',this)"></label><button id="savebtn-${t.id}" onclick="saveAnexo('${t.id}')" style="padding:3px 10px;background:#E0007A;color:#fff;border:none;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;flex-shrink:0">Salvar</button>${t.anexo?`<button onclick="removeAnexo('${t.id}')" style="padding:3px 7px;background:#f5f5f5;color:#E53935;border:1px solid #ddd;border-radius:5px;font-size:11px;cursor:pointer;flex-shrink:0">✕</button>`:''}</div></div>`).join('')||'<p style="color:#aaa;font-size:13px;padding:12px 0">Nenhuma tarefa encontrada.</p>';
+  document.getElementById('update-list').innerHTML=tasks.map(t=>{
+    const anx=getAnexos(t);
+    const chips=anx.map((a,i)=>`<span style="display:inline-flex;align-items:center;gap:3px;background:#f0f8ff;border:1px solid #c8e0ff;border-radius:5px;padding:2px 7px;font-size:11px;white-space:nowrap;"><a href="${a.url}" ${a.url.startsWith('data:')?`download="${a.nome||'anexo'}"`:'target="_blank"'} style="color:#1D6FE8;text-decoration:none;">📎 ${a.url.startsWith('data:')?(a.nome||'arquivo'):(a.nome||'Link '+(i+1))}</a><button onclick="removeAnexo('${t.id}',${i})" style="background:none;border:none;color:#E53935;cursor:pointer;font-size:12px;padding:0 0 0 4px;line-height:1;">✕</button></span>`).join('');
+    return `<div class="update-row" style="flex-wrap:wrap;row-gap:5px;"><span class="update-id">${t.id}</span><span class="update-nome" style="min-width:0">${t.tarefa}</span>${t.status.includes('Concluído')||t.status.includes('Aderente')?`<span style="font-size:11px;color:var(--green);font-weight:600;white-space:nowrap">${t.status}</span>`:`<input class="update-pct" type="number" min="0" max="100" value="${t.pct}" onchange="updatePct('${t.id}',this.value)"><span class="update-status" id="ustatus-${t.id}">${t.status}</span>`}<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;width:100%;padding-left:65px;">${chips}<input type="url" id="upd-link-${t.id}" placeholder="Link do Drive…" style="flex:1;min-width:100px;padding:3px 7px;border:1px solid #ddd;border-radius:5px;font-size:11px;"><label style="font-size:11px;cursor:pointer;white-space:nowrap;background:#f5f5f5;padding:3px 8px;border-radius:5px;border:1px solid #ddd;flex-shrink:0;">📁 Arquivo<input type="file" style="display:none" onchange="updateAnexoFile('${t.id}',this)"></label><button id="addbtn-${t.id}" onclick="addAnexo('${t.id}')" style="padding:3px 10px;background:#E0007A;color:#fff;border:none;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;flex-shrink:0;">+ Adicionar</button></div></div>`;
+  }).join('')||'<p style="color:#aaa;font-size:13px;padding:12px 0">Nenhuma tarefa encontrada.</p>';
 }
 
-function saveAnexo(id){
+function addAnexo(id){
   const t=state.tasks.find(x=>x.id===id);if(!t)return;
+  getAnexos(t);
   const link=(document.getElementById('upd-link-'+id)||{}).value.trim();
-  if(link){t.anexo=link;t.anexoNome='';}
-  if(!t.anexo){alert('Informe um link ou selecione um arquivo antes de salvar.');return;}
+  let added=false;
+  if(link){t.anexos.push({url:link,nome:''});added=true;}
+  else if(_pendingAnexoFile[id]){const f=_pendingAnexoFile[id];t.anexos.push({url:f.url,nome:f.nome});delete _pendingAnexoFile[id];added=true;}
+  if(!added){alert('Informe um link ou selecione um arquivo antes de adicionar.');return;}
   refreshAlertPanel();
-  const btn=document.getElementById('savebtn-'+id);
-  if(btn){btn.textContent='✓ Salvo';btn.style.background='var(--green)';setTimeout(()=>{if(document.getElementById('savebtn-'+id)){renderUpdateList(document.querySelector('.update-search')?.value||'');}},1500);}
+  const btn=document.getElementById('addbtn-'+id);
+  if(btn){btn.textContent='✓';btn.style.background='var(--green)';setTimeout(()=>renderUpdateList(document.querySelector('.update-search')?.value||''),800);}
 }
 
 function updateAnexoFile(id,input){
   const file=input.files[0];if(!file)return;
   if(file.size>5*1024*1024){alert('Arquivo muito grande. Use até 5MB ou prefira um link do Drive.');input.value='';return;}
   const reader=new FileReader();
-  reader.onload=e=>{const t=state.tasks.find(x=>x.id===id);if(!t)return;t.anexo=e.target.result;t.anexoNome=file.name;const lbl=input.closest('label');if(lbl)lbl.innerHTML='✅ '+file.name+'<input type="file" style="display:none" onchange="updateAnexoFile(\''+id+'\',this)">';};
+  reader.onload=e=>{_pendingAnexoFile[id]={url:e.target.result,nome:file.name};const lbl=input.closest('label');if(lbl)lbl.innerHTML='✅ '+file.name+'<input type="file" style="display:none" onchange="updateAnexoFile(\''+id+'\',this)">';};
   reader.readAsDataURL(file);
 }
 
-function removeAnexo(id){
+function removeAnexo(id,idx){
   const t=state.tasks.find(x=>x.id===id);if(!t)return;
-  t.anexo='';t.anexoNome='';
+  getAnexos(t);t.anexos.splice(idx,1);
+  refreshAlertPanel();
   renderUpdateList(document.querySelector('.update-search')?.value||'');
 }
 
