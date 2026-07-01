@@ -209,9 +209,91 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 .btn-admin-access{background:none;border:1px solid #444;color:#aaa;padding:7px 12px;border-radius:7px;font-size:12px;cursor:pointer;display:none;}.btn-admin-access:hover{border-color:#E0007A;color:#E0007A;}
 
 .btn-logout{background:none;border:none;color:#666;font-size:12px;cursor:pointer;text-decoration:underline;}.btn-logout:hover{color:#E0007A;}
+
+/* ── ACCESS CONTROL ─────────────────────────────────────────────────────────── */
+#access-wall{position:fixed;inset:0;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;}
+#access-wall.hidden{display:none;}
+.aw-box{background:#fff;border-radius:14px;width:400px;max-width:94vw;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+.aw-head{background:#000;padding:28px 28px 20px;text-align:center;}
+.aw-head img{width:52px;height:52px;border-radius:50%;object-fit:contain;margin-bottom:12px;}
+.aw-head h2{color:#fff;font-size:20px;font-weight:800;margin:0;}
+.aw-head p{color:#aaa;font-size:13px;margin:6px 0 0;}
+.aw-body{padding:28px;text-align:center;}
+.aw-body p{font-size:14px;color:#444;margin:0 0 8px;}
+.aw-body small{font-size:12px;color:#aaa;}
+/* admin panel */
+#adm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:8000;display:none;align-items:center;justify-content:center;}
+#adm-overlay.open{display:flex;}
+.adm-box{background:#fff;border-radius:12px;width:600px;max-width:96vw;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;}
+.adm-head{background:#000;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.adm-head h3{color:#fff;font-size:16px;font-weight:700;margin:0;}
+.adm-close{background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;line-height:1;padding:0;}.adm-close:hover{color:#fff;}
+.adm-body{padding:22px;overflow-y:auto;}
+.adm-section{margin-bottom:22px;}
+.adm-section h4{font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.07em;margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid #eee;}
+.person-row{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:8px;padding:10px 12px;background:#f8f8f8;border-radius:7px;margin-bottom:6px;}
+.person-name{font-size:13px;font-weight:600;color:#111;}
+.person-email{font-size:11px;color:#888;margin-top:1px;}
+.btn-copy-link{background:none;border:1px solid #ccc;color:#555;padding:5px 11px;border-radius:5px;font-size:11px;cursor:pointer;white-space:nowrap;}
+.btn-copy-link:hover{border-color:#E0007A;color:#E0007A;}
+.btn-copy-link.copied{border-color:#00A86B;color:#00A86B;}
+.btn-del{background:none;border:1px solid #ffcccc;color:#E53935;padding:5px 10px;border-radius:5px;font-size:11px;cursor:pointer;}
+.btn-del:hover{background:#E53935;color:#fff;}
+.add-form{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-top:8px;}
+.add-form input{padding:9px 12px;border:1px solid #e0e0e0;border-radius:7px;font-size:13px;outline:none;}
+.add-form input:focus{border-color:#E0007A;}
+.btn-add-person{background:#E0007A;color:#fff;border:none;padding:9px 16px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.btn-add-person:hover{background:#B3005F;}
+.btn-export{width:100%;background:#111;color:#fff;border:none;padding:11px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px;}
+.btn-export:hover{background:#333;}
+.export-info{font-size:12px;color:#888;margin-top:8px;line-height:1.5;text-align:center;}
+/* admin btn topbar */
+.btn-adm{background:none;border:1px solid #444;color:#aaa;padding:7px 12px;border-radius:7px;font-size:12px;cursor:pointer;display:none;}
+.btn-adm:hover{border-color:#E0007A;color:#E0007A;}
 </style>
 </head>
 <body>
+
+<!-- ── ACCESS WALL ── -->
+<div id="access-wall">
+  <div class="aw-box">
+    <div class="aw-head">
+      <img src="Logo - Símbolo-01 (1).png" onerror="this.style.display='none'" alt="meutudo">
+      <h2>Riscos &amp; Capital</h2>
+      <p>Painel restrito — meutudo</p>
+    </div>
+    <div class="aw-body">
+      <p>Você não tem acesso a este painel.</p>
+      <small>Solicite o link de acesso ao gestor da área de Riscos.</small>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADMIN PANEL ── -->
+<div id="adm-overlay">
+  <div class="adm-box">
+    <div class="adm-head">
+      <h3>🔐 Gerenciar acessos</h3>
+      <button class="adm-close" onclick="admClose()">✕</button>
+    </div>
+    <div class="adm-body">
+      <div class="adm-section">
+        <h4>Pessoas com acesso</h4>
+        <div id="adm-person-list"></div>
+        <div class="add-form" style="margin-top:14px;">
+          <input type="text" id="adm-new-name" placeholder="Nome (ex: Ana Silva)">
+          <input type="email" id="adm-new-email" placeholder="E-mail (opcional)">
+          <button class="btn-add-person" onclick="admAddPerson()">+ Adicionar</button>
+        </div>
+      </div>
+      <div class="adm-section">
+        <h4>Publicar alterações</h4>
+        <button class="btn-export" onclick="admExport()">⬇ Baixar HTML atualizado</button>
+        <p class="export-info">Depois de adicionar ou remover pessoas, baixe o HTML atualizado e faça upload no GitHub para as mudanças entrarem em vigor.</p>
+      </div>
+    </div>
+  </div>
+</div>
 
     <div class="auth-body">
       <p>Você não tem um link de acesso válido.</p>
@@ -247,7 +329,8 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   </div>
   <div class="topbar-right">
     <div class="topbar-date" id="topbar-date"></div>
-<button class="btn-new" onclick="openModal()">+ Nova tarefa / Atualizar</button>
+<button class="btn-adm" id="btn-adm" onclick="admOpen()">⚙ Acessos</button>
+    <button class="btn-new" onclick="openModal()">+ Nova tarefa / Atualizar</button>
   </div>
 </div>
 
@@ -692,8 +775,123 @@ function toggleTaskNome(rowEl){
   if(hint) hint.textContent = nome.classList.contains('expanded') ? '▲' : '▼';
 }
 
+
+// ── ACCESS CONTROL ────────────────────────────────────────────────────────────
+const ADMIN_TOKEN = '26c28021980e56fec425';
+const BASE_URL = 'https://isabellafolegatti-hue.github.io/riscos-capital/';
+const TK_STORE  = 'mt_riscos_tk';
+
+// ── TOKEN LIST — managed via admin panel ──────────────────────────────────────
+// FORMAT: [{name:'Nome', token:'hex', email:'opt@email'}]
+const VALID_TOKENS = [];
+
+function getUrlToken(){
+  return new URLSearchParams(location.search).get('t')||'';
+}
+
+function getSavedToken(){
+  try{return localStorage.getItem(TK_STORE)||'';}catch{return '';}
+}
+
+function validateToken(tk){
+  if(!tk) return null;
+  if(tk===ADMIN_TOKEN) return {name:'Admin',admin:true};
+  return VALID_TOKENS.find(t=>t.token===tk)||null;
+}
+
+function checkAccess(){
+  const urlTk  = getUrlToken();
+  const savedTk = getSavedToken();
+  const token  = urlTk || savedTk;
+  const person = validateToken(token);
+  if(!person){
+    document.getElementById('access-wall').classList.remove('hidden');
+    return false;
+  }
+  try{localStorage.setItem(TK_STORE, token);}catch{}
+  document.getElementById('access-wall').classList.add('hidden');
+  if(person.admin){
+    document.getElementById('btn-adm').style.display='inline-flex';
+  }
+  return true;
+}
+
+// ── ADMIN PANEL ───────────────────────────────────────────────────────────────
+function admOpen(){admRenderList();document.getElementById('adm-overlay').classList.add('open');}
+function admClose(){document.getElementById('adm-overlay').classList.remove('open');}
+
+document.getElementById('adm-overlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('adm-overlay'))admClose();
+});
+
+function genToken(){
+  const arr=new Uint8Array(12);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function admRenderList(){
+  const el=document.getElementById('adm-person-list');
+  if(!VALID_TOKENS.length){
+    el.innerHTML='<p style="font-size:13px;color:#aaa;padding:8px 0">Nenhuma pessoa adicionada ainda.</p>';
+    return;
+  }
+  el.innerHTML=VALID_TOKENS.map((p,i)=>`
+    <div class="person-row">
+      <div>
+        <div class="person-name">${p.name}</div>
+        ${p.email?`<div class="person-email">${p.email}</div>`:''}
+      </div>
+      <button class="btn-copy-link" id="cpbtn-${i}" onclick="admCopyLink('${p.token}',${i})">Copiar link</button>
+      <button class="btn-del" onclick="admRemove(${i})">Remover</button>
+    </div>`).join('');
+}
+
+function admCopyLink(token,idx){
+  const link=BASE_URL+'?t='+token;
+  navigator.clipboard.writeText(link).then(()=>{
+    const btn=document.getElementById('cpbtn-'+idx);
+    btn.textContent='✓ Copiado!';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='Copiar link';btn.classList.remove('copied');},2000);
+  });
+}
+
+function admAddPerson(){
+  const name=(document.getElementById('adm-new-name').value||'').trim();
+  const email=(document.getElementById('adm-new-email').value||'').trim();
+  if(!name){alert('Informe o nome da pessoa.');return;}
+  const token=genToken();
+  VALID_TOKENS.push({name,email,token});
+  document.getElementById('adm-new-name').value='';
+  document.getElementById('adm-new-email').value='';
+  admRenderList();
+}
+
+function admRemove(idx){
+  if(!confirm('Remover acesso de '+VALID_TOKENS[idx].name+'?'))return;
+  VALID_TOKENS.splice(idx,1);
+  admRenderList();
+}
+
+function admExport(){
+  const tokenJSON=JSON.stringify(VALID_TOKENS,null,0)
+    .replace(/^\[/,'[').replace(/\]$/,']');
+  const src=document.documentElement.outerHTML;
+  const updated=src.replace(
+    /const VALID_TOKENS = \[.*?\];/s,
+    'const VALID_TOKENS = '+tokenJSON+';'
+  );
+  const blob=new Blob([updated],{type:'text/html'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='index.html';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
 // ─── INIT ────────────────────────────────────────────────────────────────────
 function init(){
+  if(!checkAccess()) return;
   document.getElementById('topbar-date').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'}).replace(',','');
   state.tasks.forEach(t=>{if(!t.status.includes('Concluído')&&diasAte(t.prazo)<0&&!t.status.includes('Atrasado'))t.status='🔴 Atrasado';});
   refreshKPIs();renderMonths();renderTeamPanel();renderRespFilter();refreshAlertPanel();
