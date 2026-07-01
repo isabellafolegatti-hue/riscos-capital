@@ -54,7 +54,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 .btn-back{background:none;border:1px solid var(--g2);padding:7px 14px;border-radius:7px;cursor:pointer;font-size:13px;color:#555;margin-bottom:16px;}.btn-back:hover{border-color:var(--pink);color:var(--pink);}
 .day-group{margin-bottom:20px;}
 .day-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--g2);}
-.task-row{background:#fff;border-radius:8px;padding:10px 16px;margin-bottom:8px;display:grid;grid-template-columns:78px 130px 1fr 178px 65px 145px 72px 82px;gap:8px;align-items:center;border-left:4px solid transparent;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.task-row{background:#fff;border-radius:8px;padding:10px 16px;margin-bottom:8px;display:grid;grid-template-columns:78px 130px 1fr 178px 65px 145px 72px 32px 82px;gap:8px;align-items:center;border-left:4px solid transparent;box-shadow:0 1px 3px rgba(0,0,0,.06);}
 .task-row.t-red{background:#FFF8F8;border-left-color:var(--red);}.task-row.t-yel{background:#FFFDF5;border-left-color:var(--yellow);}.task-row.t-grn{background:#F5FDF9;border-left-color:var(--green);}.task-row.t-done{opacity:.65;}
 .task-id{font-size:11px;font-weight:700;color:#888;background:var(--g1);padding:2px 6px;border-radius:4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .task-dom{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -658,10 +658,11 @@ function renderDays(weekKey){
     const dl=dias[d.getDay()]+' · '+d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
     const rows=groups[day].map(t=>`<div class="task-row ${rowClass(t)}" id="row-${t.id}" onclick="toggleTaskNome(this)">
       <div class="task-id">${t.id}</div><div class="task-dom ${domClass(t.dominio)}" title="${t.dominios?t.dominios.join(', '):t.dominio}">${t.dominios&&t.dominios.length>1?t.dominio.split(' ').slice(-1)[0]+' +'+(t.dominios.length-1):t.dominio}</div>
-      <div class="task-nome">${t.tarefa}<span class="expand-hint">▼</span>${t.obs?`<div class="task-obs-text">${t.obs}</div>`:''}${t.anexo?`<div style="margin-top:6px"><a href="${t.anexo}" ${t.anexo.startsWith('data:')?`download="${t.anexoNome||'anexo'}"`:'target="_blank"'} onclick="event.stopPropagation()" style="font-size:11px;color:#1D6FE8;text-decoration:none;display:inline-flex;align-items:center;gap:3px;">${t.anexo.startsWith('data:')?'📎 Baixar '+( t.anexoNome||'arquivo'):'📎 Ver anexo'}</a></div>`:''}
-      </div><div class="task-resp">${displayResp(t.responsavel,t.dominios,t.soloResp)}</div>
+      <div class="task-nome">${t.tarefa}<span class="expand-hint">▼</span>${t.obs?`<div class="task-obs-text">${t.obs}</div>`:''}</div>
+      <div class="task-resp">${displayResp(t.responsavel,t.dominios,t.soloResp)}</div>
       <div class="task-prior">${t.prioridade}</div><div class="task-status">${t.status}</div>
       ${pctDiasHtml(t)}
+      <div style="text-align:center">${t.anexo?`<a href="${t.anexo}" ${t.anexo.startsWith('data:')?`download="${t.anexoNome||'anexo'}"`:'target="_blank"'} onclick="event.stopPropagation()" title="${t.anexo.startsWith('data:')?(t.anexoNome||'Baixar arquivo'):'Ver anexo'}" style="font-size:18px;text-decoration:none;">📎</a>`:'<span style="color:#ddd;font-size:14px">—</span>'}</div>
       ${t.status.includes('Concluído')||t.status.includes('Aderente')?'<span style="font-size:18px">✅</span>':`<button class="btn-done" onclick="event.stopPropagation();concludeTask('${t.id}')">✅ Concluir</button>`}
     </div>`).join('');
     html+=`<div class="day-group"><div class="day-label">${dl}</div>${rows}</div>`;
@@ -828,10 +829,15 @@ function renderUpdateList(q=''){
 
 function saveAnexo(id){
   const t=state.tasks.find(x=>x.id===id);if(!t)return;
-  const link=(document.getElementById('upd-link-'+id)||{}).value||'';
-  if(link){t.anexo=link.trim();t.anexoNome='';}
+  const link=(document.getElementById('upd-link-'+id)||{}).value.trim();
+  if(link){t.anexo=link;t.anexoNome='';}
+  // se não há link, mantém o arquivo já carregado via updateAnexoFile
+  if(!t.anexo){alert('Informe um link ou selecione um arquivo antes de salvar.');return;}
   renderUpdateList(document.querySelector('.update-search')?.value||'');
   refreshAlertPanel();
+  // confirmação visual
+  const btn=document.querySelector(`button[onclick="saveAnexo('${id}')"]`);
+  if(btn){btn.textContent='✓ Salvo';btn.style.background='var(--green)';setTimeout(()=>{btn.textContent='Salvar';btn.style.background='#E0007A';},2000);}
 }
 
 function updateAnexoFile(id,input){
@@ -1011,8 +1017,9 @@ async function admPublish(){
 
   statusEl.textContent='⏳ Buscando HTML fonte...';
   let src;
-  try{src=await fetch(location.href+'?nocache='+Date.now()).then(r=>r.text());}
-  catch{statusEl.textContent='❌ Erro ao buscar HTML fonte.';return;}
+  const srcUrl=location.origin+location.pathname+'?nocache='+Date.now();
+  try{src=await fetch(srcUrl).then(r=>{if(!r.ok)throw new Error(r.status);return r.text();});}
+  catch(e){statusEl.textContent='❌ Erro ao buscar HTML fonte: '+e.message;return;}
 
   const tokenJSON=JSON.stringify(VALID_TOKENS);
   const tasksInner=JSON.stringify(state.tasks).slice(1,-1);
