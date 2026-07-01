@@ -853,7 +853,7 @@ function admSendEmail(token,name,email){
     'Qualquer dúvida, entre em contato.\n\n'+
     'Isabella Folegatti\nGestora de Riscos e Capital — meutudo'
   );
-  window.open('mailto:'+email+'?subject='+subject+'&body='+body,'_blank');
+  window.open('https://mail.google.com/mail/?view=cm&to='+encodeURIComponent(email)+'&su='+subject+'&body='+body,'_blank');
 }
 
 function admAddPerson(){
