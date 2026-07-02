@@ -823,6 +823,8 @@ function saveAnexo(id){
   if(link){t.anexo=link;t.anexoNome='';}
   if(!t.anexo){alert('Informe um link ou selecione um arquivo antes de salvar.');return;}
   refreshAlertPanel();
+  refreshCurrentView();
+  saveToLS();
   const btn=document.getElementById('savebtn-'+id);
   if(btn){btn.textContent='✓ Salvo';btn.style.background='var(--green)';setTimeout(()=>{if(document.getElementById('savebtn-'+id)){renderUpdateList(document.querySelector('.update-search')?.value||'');}},1500);}
 }
@@ -831,13 +833,15 @@ function updateAnexoFile(id,input){
   const file=input.files[0];if(!file)return;
   if(file.size>5*1024*1024){alert('Arquivo muito grande. Use até 5MB ou prefira um link do Drive.');input.value='';return;}
   const reader=new FileReader();
-  reader.onload=e=>{const t=state.tasks.find(x=>x.id===id);if(!t)return;t.anexo=e.target.result;t.anexoNome=file.name;const lbl=input.closest('label');if(lbl)lbl.innerHTML='✅ '+file.name+'<input type="file" style="display:none" onchange="updateAnexoFile(\''+id+'\',this)">';};
+  reader.onload=e=>{const t=state.tasks.find(x=>x.id===id);if(!t)return;t.anexo=e.target.result;t.anexoNome=file.name;const lbl=input.closest('label');if(lbl)lbl.innerHTML='✅ '+file.name+'<input type="file" style="display:none" onchange="updateAnexoFile(\''+id+'\',this)">';refreshCurrentView();saveToLS();};
   reader.readAsDataURL(file);
 }
 
 function removeAnexo(id){
   const t=state.tasks.find(x=>x.id===id);if(!t)return;
   t.anexo='';t.anexoNome='';
+  refreshCurrentView();
+  saveToLS();
   renderUpdateList(document.querySelector('.update-search')?.value||'');
 }
 
