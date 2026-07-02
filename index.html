@@ -338,8 +338,6 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   <div class="topbar-right">
     <div class="topbar-date" id="topbar-date"></div>
 <button class="btn-adm" id="btn-adm" onclick="admOpen()">⚙ Acessos</button>
-<button id="btn-publish-quick" onclick="admPublish()" style="display:none;background:#00A86B;color:#fff;border:none;padding:7px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;margin-left:6px;">🚀 Publicar</button>
-<span id="btn-publish-status" style="display:none;font-size:11px;color:#aaa;margin-left:6px;"></span>
     <button class="btn-new" onclick="openModal()">+ Nova tarefa / Atualizar</button>
   </div>
 </div>
@@ -672,7 +670,7 @@ function renderDays(weekKey){
       <div class="task-resp">${displayResp(t.responsavel,t.dominios,t.soloResp)}</div>
       <div class="task-prior">${t.prioridade}</div><div class="task-status">${t.status}</div>
       ${pctDiasHtml(t)}
-      <div style="text-align:center">${(()=>{const anx=getAnexos(t);return anx.length?anx.map((a,i)=>`<a href="${a.url}" ${a.url.startsWith('data:')?`download="${a.nome||'anexo'}"`:'target="_blank"'} onclick="event.stopPropagation()" title="${a.nome||'Anexo '+(i+1)}" style="font-size:16px;text-decoration:none;margin:0 1px;">📎</a>`).join(''):'<span style="color:#ddd;font-size:14px">—</span>';})()}</div>
+      <div style="text-align:center">${t.anexo?`<a href="${t.anexo}" ${t.anexo.startsWith('data:')?`download="${t.anexoNome||'anexo'}"`:'target="_blank"'} onclick="event.stopPropagation()" title="${t.anexo.startsWith('data:')?(t.anexoNome||'Baixar arquivo'):'Ver anexo'}" style="font-size:18px;text-decoration:none;">📎</a>`:'<span style="color:#ddd;font-size:14px">—</span>'}</div>
       ${t.status.includes('Concluído')||t.status.includes('Aderente')?'<span style="font-size:18px">✅</span>':`<button class="btn-done" onclick="event.stopPropagation();concludeTask('${t.id}')">✅ Concluir</button>`}
     </div>`).join('');
     html+=`<div class="day-group"><div class="day-label">${dl}</div>${rows}</div>`;
@@ -741,7 +739,7 @@ function refreshAlertPanel(){
     const prazoPtBR=t.prazo==='2099-12-31'?'Aderente':new Date(t.prazo+'T12:00:00').toLocaleDateString('pt-BR');
         const dominioLabel=t.dominios&&t.dominios.length>1?t.dominios[0]+' +'+(t.dominios.length-1):t.dominio;
     const diasR=diasAte(t.prazo);const diasLabel=t.status.includes('Concluído')||t.status.includes('Aderente')?'✅':(diasR<0?`<span style="color:var(--red);font-weight:700">${diasR}d</span>`:`${diasR}d`);
-    const anx=getAnexos(t);const anexoCell=anx.length?anx.map((a,i)=>`<a href="${a.url}" ${a.url.startsWith('data:')?`download="${a.nome||'anexo'}"`:'target="_blank"'} title="${a.nome||'Anexo '+(i+1)}" style="font-size:15px;text-decoration:none;margin:0 1px;">📎</a>`).join(''):'<span style="color:#ddd">—</span>';
+    const anexoCell=t.anexo?`<a href="${t.anexo}" ${t.anexo.startsWith('data:')?`download="${t.anexoNome||'anexo'}"`:'target="_blank"'} title="${t.anexo.startsWith('data:')?(t.anexoNome||'Baixar arquivo'):'Ver anexo'}" style="font-size:16px;text-decoration:none;">📎</a>`:'<span style="color:#ddd">—</span>';
     return `<tr><td><b>${t.id}</b></td><td>${dominioLabel}</td><td>${t.tarefa}</td><td>${displayResp(t.responsavel,t.dominios,t.soloResp)}</td><td>${prazoPtBR}</td><td>${badge}</td><td style="text-align:center">${diasLabel}</td><td style="text-align:center">${anexoCell}</td></tr>`;
   }).join('');
 }
@@ -751,7 +749,6 @@ function sendDraftAlert(){
   const filter=state.alertFilter;
   const targets=filter==='Todos'?Object.keys(RESPONSAVEIS):[filter];
   let opened=0;
-
   targets.forEach(name=>{
     const info=RESPONSAVEIS[name];if(!info)return;
     const tasks=state.tasks.filter(t=>{
@@ -760,37 +757,22 @@ function sendDraftAlert(){
       return isResp&&!t.status.includes('Concluído')&&!t.status.includes('Aderente');
     });
     if(tasks.length===0)return;
-
     const atrasadas=tasks.filter(t=>diasAte(t.prazo)<0);
     const prox7=tasks.filter(t=>{const d=diasAte(t.prazo);return d>=0&&d<=7;});
     const demais=tasks.filter(t=>diasAte(t.prazo)>7);
     const fmt=p=>new Date(p+'T12:00:00').toLocaleDateString('pt-BR');
-
-    const subject=`📋 Suas tarefas — Riscos & Capital · ${fmt(TODAY)}`;
-    let body=`Olá, ${name.split(' ')[0]}!\n\nSeguem suas tarefas da área de Riscos & Capital:\n`;
-    if(atrasadas.length){
-      body+=`\n🔴 ATRASADAS (${atrasadas.length})\n`;
-      atrasadas.forEach(t=>{body+=`  • [${t.id}] ${t.tarefa}\n    Prazo: ${fmt(t.prazo)} | ${t.status}\n`;});
-    }
-    if(prox7.length){
-      body+=`\n⚠️ VENCENDO EM 7 DIAS (${prox7.length})\n`;
-      prox7.forEach(t=>{body+=`  • [${t.id}] ${t.tarefa}\n    Prazo: ${fmt(t.prazo)} | ${t.status}\n`;});
-    }
-    if(demais.length){
-      body+=`\n📌 DEMAIS TAREFAS (${demais.length})\n`;
-      demais.forEach(t=>{body+=`  • [${t.id}] ${t.tarefa}\n    Prazo: ${fmt(t.prazo)} | ${t.status}\n`;});
-    }
-    body+=`\nAcesse o painel: ${BASE_URL}\n\nAtenciosamente,\nIsabella Folegatti\nGestora de Riscos e Capital — meutudo`;
-
-    const url=`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(info.email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const subject='📋 Suas tarefas — Riscos & Capital · '+fmt(TODAY);
+    let body='Olá, '+name.split(' ')[0]+'!\n\nSeguem suas tarefas da área de Riscos & Capital:\n';
+    if(atrasadas.length){body+='\n🔴 ATRASADAS ('+atrasadas.length+')\n';atrasadas.forEach(t=>{body+='  • ['+t.id+'] '+t.tarefa+'\n    Prazo: '+fmt(t.prazo)+' | '+t.status+'\n';});}
+    if(prox7.length){body+='\n⚠️ VENCENDO EM 7 DIAS ('+prox7.length+')\n';prox7.forEach(t=>{body+='  • ['+t.id+'] '+t.tarefa+'\n    Prazo: '+fmt(t.prazo)+' | '+t.status+'\n';});}
+    if(demais.length){body+='\n📌 DEMAIS TAREFAS ('+demais.length+')\n';demais.forEach(t=>{body+='  • ['+t.id+'] '+t.tarefa+'\n    Prazo: '+fmt(t.prazo)+' | '+t.status+'\n';});}
+    body+='\nAcesse o painel: '+BASE_URL+'\n\nAtenciosamente,\nIsabella Folegatti\nGestora de Riscos e Capital — meutudo';
+    const url='https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(info.email)+'&su='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
     window.open(url,'_blank');
     opened++;
   });
-
   st.className='send-status info';st.style.display='block';
-  st.textContent=opened>0
-    ?`✉️ ${opened} janela(s) abertas no Gmail — revise e salve como rascunho ou envie.`
-    :'⚠️ Nenhuma tarefa pendente para o filtro selecionado.';
+  st.textContent=opened>0?'✉️ '+opened+' janela(s) abertas no Gmail — revise e salve como rascunho ou envie.':'⚠️ Nenhuma tarefa pendente para o filtro selecionado.';
 }
 
 // ─── MODAL ────────────────────────────────────────────────────────────────────────────────
@@ -807,15 +789,6 @@ function updateRespByDomain(){
 }
 
 let _anexoFileData = null; // {name, dataUrl}
-const _pendingAnexoFile = {}; // {[taskId]: {url, nome}}
-
-function getAnexos(t){
-  if(!Array.isArray(t.anexos)){
-    t.anexos = t.anexo ? [{url:t.anexo, nome:t.anexoNome||''}] : [];
-    delete t.anexo; delete t.anexoNome;
-  }
-  return t.anexos;
-}
 
 function switchAnexoMode(mode){
   const isLink = mode === 'link';
@@ -848,13 +821,13 @@ function loadAnexoFile(input){
 function saveTask(){
   const tarefa=document.getElementById('f-tarefa').value.trim();const dominio=document.getElementById('f-dominio').value;const resp=document.getElementById('f-resp').value;const prazo=document.getElementById('f-prazo').value;const prioridade=document.getElementById('f-prioridade').value;const projeto=document.getElementById('f-projeto').value.trim();const obs=document.getElementById('f-obs').value.trim();
   const linkMode=document.getElementById('anexo-link-wrap').style.display!=='none';
-  const anexos=[];
-  if(linkMode){const u=document.getElementById('f-anexo').value.trim();if(u)anexos.push({url:u,nome:''});}
-  else if(_anexoFileData){anexos.push({url:_anexoFileData.dataUrl,nome:_anexoFileData.name});}
+  let anexo='',anexoNome='';
+  if(linkMode){anexo=document.getElementById('f-anexo').value.trim();}
+  else if(_anexoFileData){anexo=_anexoFileData.dataUrl;anexoNome=_anexoFileData.name;}
   if(!tarefa||!dominio||!resp||!prazo){alert('Preencha os campos obrigatórios.');return;}
   const prefix=PREFIXOS[dominio]||'XX';const existing=state.tasks.filter(t=>t.id.startsWith(prefix+'-')).length;const id=prefix+'-'+String(existing+1).padStart(3,'0');
   const dd=diasAte(prazo);const status=dd<0?'🔴 Atrasado':'⬜ Não iniciado';
-  state.tasks.push({id,dominio,projeto,tarefa,responsavel:resp,prazo,status,pct:0,prioridade,obs,anexos});
+  state.tasks.push({id,dominio,projeto,tarefa,responsavel:resp,prazo,status,pct:0,prioridade,obs,anexo,anexoNome});
   saveToLS();refreshKPIs();refreshCurrentView();refreshAlertPanel();
   _anexoFileData=null;
   document.getElementById('f-tarefa').value='';document.getElementById('f-dominio').value='';document.getElementById('f-resp').value='';document.getElementById('f-prazo').value='';document.getElementById('f-obs').value='';document.getElementById('f-anexo').value='';document.getElementById('f-anexo-file-name').textContent='';switchAnexoMode('link');
@@ -863,38 +836,30 @@ function saveTask(){
 
 function renderUpdateList(q=''){
   const tasks=state.tasks.filter(t=>(t.id+t.tarefa+t.responsavel).toLowerCase().includes(q.toLowerCase()));
-  document.getElementById('update-list').innerHTML=tasks.map(t=>{
-    const anx=getAnexos(t);
-    const chips=anx.map((a,i)=>`<span style="display:inline-flex;align-items:center;gap:3px;background:#f0f8ff;border:1px solid #c8e0ff;border-radius:5px;padding:2px 7px;font-size:11px;white-space:nowrap;"><a href="${a.url}" ${a.url.startsWith('data:')?`download="${a.nome||'anexo'}"`:'target="_blank"'} style="color:#1D6FE8;text-decoration:none;">📎 ${a.url.startsWith('data:')?(a.nome||'arquivo'):(a.nome||'Link '+(i+1))}</a><button onclick="removeAnexo('${t.id}',${i})" style="background:none;border:none;color:#E53935;cursor:pointer;font-size:12px;padding:0 0 0 4px;line-height:1;">✕</button></span>`).join('');
-    return `<div class="update-row" style="flex-wrap:wrap;row-gap:5px;"><span class="update-id">${t.id}</span><span class="update-nome" style="min-width:0">${t.tarefa}</span>${t.status.includes('Concluído')||t.status.includes('Aderente')?`<span style="font-size:11px;color:var(--green);font-weight:600;white-space:nowrap">${t.status}</span>`:`<input class="update-pct" type="number" min="0" max="100" value="${t.pct}" onchange="updatePct('${t.id}',this.value)"><span class="update-status" id="ustatus-${t.id}">${t.status}</span>`}<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;width:100%;padding-left:65px;">${chips}<input type="url" id="upd-link-${t.id}" placeholder="Link do Drive…" style="flex:1;min-width:100px;padding:3px 7px;border:1px solid #ddd;border-radius:5px;font-size:11px;"><label style="font-size:11px;cursor:pointer;white-space:nowrap;background:#f5f5f5;padding:3px 8px;border-radius:5px;border:1px solid #ddd;flex-shrink:0;">📁 Arquivo<input type="file" style="display:none" onchange="updateAnexoFile('${t.id}',this)"></label><button id="addbtn-${t.id}" onclick="addAnexo('${t.id}')" style="padding:3px 10px;background:#E0007A;color:#fff;border:none;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;flex-shrink:0;">Salvar</button></div></div>`;
-  }).join('')||'<p style="color:#aaa;font-size:13px;padding:12px 0">Nenhuma tarefa encontrada.</p>';
+  document.getElementById('update-list').innerHTML=tasks.map(t=>`<div class="update-row" style="flex-wrap:wrap;row-gap:6px;"><span class="update-id">${t.id}</span><span class="update-nome" style="min-width:0">${t.tarefa}</span>${t.status.includes('Concluído')||t.status.includes('Aderente')?`<span style="font-size:11px;color:var(--green);font-weight:600;white-space:nowrap">${t.status}</span>`:`<input class="update-pct" type="number" min="0" max="100" value="${t.pct}" onchange="updatePct('${t.id}',this.value)"><span class="update-status" id="ustatus-${t.id}">${t.status}</span>`}<div style="display:flex;align-items:center;gap:5px;width:100%;padding-left:65px;">${t.anexo?`<a href="${t.anexo}" ${t.anexo.startsWith('data:')?`download="${t.anexoNome||'anexo'}"`:'target="_blank"'} style="font-size:11px;color:#1D6FE8;text-decoration:none;white-space:nowrap;flex-shrink:0">📎 ${t.anexo.startsWith('data:')?(t.anexoNome||'arquivo'):'Ver anexo'}</a><span style="color:#ccc">|</span>`:''}<input type="url" id="upd-link-${t.id}" placeholder="Link do Drive…" value="${(!t.anexo||t.anexo.startsWith('data:'))?'':t.anexo}" style="flex:1;min-width:100px;padding:3px 7px;border:1px solid #ddd;border-radius:5px;font-size:11px;"><label style="font-size:11px;cursor:pointer;white-space:nowrap;background:#f5f5f5;padding:3px 8px;border-radius:5px;border:1px solid #ddd;flex-shrink:0">📁 Arquivo<input type="file" style="display:none" onchange="updateAnexoFile('${t.id}',this)"></label><button id="savebtn-${t.id}" onclick="saveAnexo('${t.id}')" style="padding:3px 10px;background:#E0007A;color:#fff;border:none;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;flex-shrink:0">Salvar</button>${t.anexo?`<button onclick="removeAnexo('${t.id}')" style="padding:3px 7px;background:#f5f5f5;color:#E53935;border:1px solid #ddd;border-radius:5px;font-size:11px;cursor:pointer;flex-shrink:0">✕</button>`:''}</div></div>`).join('')||'<p style="color:#aaa;font-size:13px;padding:12px 0">Nenhuma tarefa encontrada.</p>';
 }
 
-function addAnexo(id){
+function saveAnexo(id){
   const t=state.tasks.find(x=>x.id===id);if(!t)return;
-  getAnexos(t);
   const link=(document.getElementById('upd-link-'+id)||{}).value.trim();
-  let added=false;
-  if(link){t.anexos.push({url:link,nome:''});added=true;}
-  else if(_pendingAnexoFile[id]){const f=_pendingAnexoFile[id];t.anexos.push({url:f.url,nome:f.nome});delete _pendingAnexoFile[id];added=true;}
-  if(!added){alert('Informe um link ou selecione um arquivo antes de adicionar.');return;}
-  saveToLS();refreshAlertPanel();
-  const btn=document.getElementById('addbtn-'+id);
-  if(btn){btn.textContent='✓';btn.style.background='var(--green)';setTimeout(()=>renderUpdateList(document.querySelector('.update-search')?.value||''),800);}
+  if(link){t.anexo=link;t.anexoNome='';}
+  if(!t.anexo){alert('Informe um link ou selecione um arquivo antes de salvar.');return;}
+  refreshAlertPanel();
+  const btn=document.getElementById('savebtn-'+id);
+  if(btn){btn.textContent='✓ Salvo';btn.style.background='var(--green)';setTimeout(()=>{if(document.getElementById('savebtn-'+id)){renderUpdateList(document.querySelector('.update-search')?.value||'');}},1500);}
 }
 
 function updateAnexoFile(id,input){
   const file=input.files[0];if(!file)return;
   if(file.size>5*1024*1024){alert('Arquivo muito grande. Use até 5MB ou prefira um link do Drive.');input.value='';return;}
   const reader=new FileReader();
-  reader.onload=e=>{_pendingAnexoFile[id]={url:e.target.result,nome:file.name};const lbl=input.closest('label');if(lbl)lbl.innerHTML='✅ '+file.name+'<input type="file" style="display:none" onchange="updateAnexoFile(\''+id+'\',this)">';};
+  reader.onload=e=>{const t=state.tasks.find(x=>x.id===id);if(!t)return;t.anexo=e.target.result;t.anexoNome=file.name;const lbl=input.closest('label');if(lbl)lbl.innerHTML='✅ '+file.name+'<input type="file" style="display:none" onchange="updateAnexoFile(\''+id+'\',this)">';};
   reader.readAsDataURL(file);
 }
 
-function removeAnexo(id,idx){
+function removeAnexo(id){
   const t=state.tasks.find(x=>x.id===id);if(!t)return;
-  getAnexos(t);t.anexos.splice(idx,1);
-  saveToLS();refreshAlertPanel();
+  t.anexo='';t.anexoNome='';
   renderUpdateList(document.querySelector('.update-search')?.value||'');
 }
 
@@ -962,18 +927,15 @@ function awManualAccess(){
 }
 
 function checkAccess(){
-  // arquivo local: admin automático
-  if(location.protocol==='file:')return grantAccess({name:'Isabella',admin:true},'local');
   const tk=getUrlToken()||getSavedToken();
   const person=validateToken(tk);
-  if(!person){document.getElementById('access-wall').classList.remove('hidden');return false;}
-  return grantAccess(person,tk);
-}
-
-function grantAccess(person,tk){
-  try{if(tk!=='local')localStorage.setItem(TK_LS,tk);}catch{}
+  if(!person){
+    document.getElementById('access-wall').classList.remove('hidden');
+    return false;
+  }
+  try{localStorage.setItem(TK_LS,tk);}catch{}
   document.getElementById('access-wall').classList.add('hidden');
-  if(person.admin){document.getElementById('btn-adm').style.display='inline-flex';document.getElementById('btn-publish-quick').style.display='inline-flex';document.getElementById('btn-publish-status').style.display='inline';}
+  if(person.admin)document.getElementById('btn-adm').style.display='inline-flex';
   return true;
 }
 
@@ -1050,30 +1012,26 @@ async function admPublish(){
   const GH_REPO  = 'riscos-capital';
   const GH_FILE  = 'index.html';
   const statusEl = document.getElementById('adm-publish-status');
-  const quickStatus = document.getElementById('btn-publish-status');
-  const origSet = statusEl.textContent.bind(statusEl);
-  const setStatus = s => { statusEl.textContent = s; if(quickStatus) quickStatus.textContent = s; };
-  setStatus('');
 
   let pat = localStorage.getItem('gh_pat')||'';
   if(!pat){
     pat = prompt('Cole seu GitHub Personal Access Token\n(necessário apenas na primeira vez — será salvo localmente):');
-    if(!pat){setStatus('Cancelado.');return;}
+    if(!pat){statusEl.textContent='Cancelado.';return;}
     localStorage.setItem('gh_pat',pat);
   }
 
-  setStatus('⏳ Buscando HTML fonte...');
+  statusEl.textContent='⏳ Buscando HTML fonte...';
   let src;
   const srcUrl=location.origin+location.pathname+'?nocache='+Date.now();
   try{src=await fetch(srcUrl).then(r=>{if(!r.ok)throw new Error(r.status);return r.text();});}
-  catch(e){setStatus('❌ Erro ao buscar HTML fonte: '+e.message);return;}
+  catch(e){statusEl.textContent='❌ Erro ao buscar HTML fonte: '+e.message;return;}
 
   const tokenJSON=JSON.stringify(VALID_TOKENS);
   const tasksInner=JSON.stringify(state.tasks).slice(1,-1);
   let updated=src.replace(/const VALID_TOKENS = \[.*?\];/s,'const VALID_TOKENS = '+tokenJSON+';');
   updated=updated.replace(/\/\/ ──TASKS_START──[\s\S]*?\/\/ ──TASKS_END──/,()=>'// ──TASKS_START──\n    '+tasksInner+'\n  ], // ──TASKS_END──');
 
-  setStatus('⏳ Obtendo versão atual do GitHub...');
+  statusEl.textContent='⏳ Obtendo versão atual do GitHub...';
   const apiBase=`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`;
   const headers={'Authorization':'token '+pat,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'};
 
@@ -1084,18 +1042,13 @@ async function admPublish(){
     const d=await r.json();
     sha=d.sha;
   }catch(e){
-    setStatus('❌ Token inválido ou sem permissão. Verifique e tente novamente.');
+    statusEl.textContent='❌ Token inválido ou sem permissão. Verifique e tente novamente.';
     localStorage.removeItem('gh_pat');
     return;
   }
 
-  setStatus('⏳ Publicando...');
-  // Encoding robusto para UTF-8 (btoa nativo falha com acentos/emojis)
-  function toBase64utf8(str){
-    const bytes=new TextEncoder().encode(str);
-    let bin='';bytes.forEach(b=>bin+=String.fromCharCode(b));
-    return btoa(bin);
-  }
+  statusEl.textContent='⏳ Publicando...';
+  function toBase64utf8(str){const bytes=new TextEncoder().encode(str);let bin='';bytes.forEach(b=>bin+=String.fromCharCode(b));return btoa(bin);}
   const content=toBase64utf8(updated);
   try{
     const r=await fetch(apiBase,{method:'PUT',headers,body:JSON.stringify({
@@ -1105,62 +1058,46 @@ async function admPublish(){
     if(!r.ok){const err=await r.json().catch(()=>({}));throw new Error(r.status+' '+(err.message||''));}
     statusEl.innerHTML='✅ <b>Publicado!</b> As pessoas já poderão acessar em ~1 minuto.';
   }catch(e){
-    setStatus('❌ Erro ao publicar: '+e.message);
+    statusEl.textContent='❌ Erro ao publicar: '+e.message;
   }
 }
 
 async function admExport(){
   // Busca o HTML fonte diretamente — não usa outerHTML para evitar corrupção
   let src;
-  try{src=await fetch(location.origin+location.pathname+'?nocache='+Date.now()).then(r=>r.text());}
+  try{src=await fetch(location.href).then(r=>r.text());}
   catch{alert('Erro ao buscar o HTML fonte. Tente novamente.');return;}
   const tokenJSON=JSON.stringify(VALID_TOKENS);
   const tasksInner=JSON.stringify(state.tasks).slice(1,-1);
   let updated=src.replace(/const VALID_TOKENS = \[.*?\];/s,'const VALID_TOKENS = '+tokenJSON+';');
-  updated=updated.replace(/\/\/ ──TASKS_START──[\s\S]*?\/\/ ──TASKS_END──/,()=>'// ──TASKS_START──
-    '+tasksInner+'
-  ], // ──TASKS_END──');
+  updated=updated.replace(/\/\/ ──TASKS_START──[\s\S]*?\/\/ ──TASKS_END──/,()=>'// ──TASKS_START──\n    '+tasksInner+'\n  ], // ──TASKS_END──');
   const blob=new Blob([updated],{type:'text/html;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download='index.html';a.click();
   URL.revokeObjectURL(a.href);
 }
 
-// ─── PERSISTÊNCIA LOCAL (localStorage) ───────────────────────────────────────
-const LS_KEY = 'mt_riscos_tasks_v2';
-
+// ─── PERSISTÊNCIA LOCAL ──────────────────────────────────────────────────────
+const LS_KEY='mt_riscos_tasks_v2';
 function saveToLS(){
   try{
-    localStorage.setItem(LS_KEY, JSON.stringify(state.tasks));
-    const ind = document.getElementById('ls-indicator');
-    if(ind){ind.textContent='💾 Salvo localmente';ind.style.color='var(--green)';clearTimeout(ind._t);ind._t=setTimeout(()=>{ind.textContent='';},3000);}
-  }catch(e){console.warn('localStorage cheio',e);}
+    localStorage.setItem(LS_KEY,JSON.stringify(state.tasks));
+    const ind=document.getElementById('ls-indicator');
+    if(ind){ind.textContent='💾 Salvo';ind.style.color='var(--green)';clearTimeout(ind._t);ind._t=setTimeout(()=>{ind.textContent='';},3000);}
+  }catch(e){console.warn('LS cheio',e);}
 }
-
 function loadFromLS(){
-  try{
-    const raw = localStorage.getItem(LS_KEY);
-    if(raw){
-      const parsed = JSON.parse(raw);
-      if(Array.isArray(parsed) && parsed.length > 0){
-        state.tasks = parsed;
-        return true;
-      }
-    }
-  }catch{}
+  try{const raw=localStorage.getItem(LS_KEY);if(raw){const p=JSON.parse(raw);if(Array.isArray(p)&&p.length>0){state.tasks=p;return true;}}}catch{}
   return false;
 }
-
 function clearLS(){
   if(!confirm('Limpar dados locais e recarregar tarefas do HTML publicado?'))return;
-  localStorage.removeItem(LS_KEY);
-  location.reload();
+  localStorage.removeItem(LS_KEY);location.reload();
 }
-
 // ─── INIT ────────────────────────────────────────────────────────────────────
 function init(){
   if(!checkAccess())return;
-  loadFromLS(); // preferir dados do localStorage se existirem
+  loadFromLS();
   document.getElementById('topbar-date').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'}).replace(',','');
   state.tasks.forEach(t=>{if(!t.status.includes('Concluído')&&diasAte(t.prazo)<0&&!t.status.includes('Atrasado'))t.status='🔴 Atrasado';});
   refreshKPIs();renderMonths();renderTeamPanel();renderRespFilter();refreshAlertPanel();
