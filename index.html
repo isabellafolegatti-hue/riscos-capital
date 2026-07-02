@@ -370,8 +370,6 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
     <tbody id="alert-tbody"></tbody></table></div>
     <div style="margin-top:14px">
       <button class="btn-send" onclick="sendDraftAlert()">✉️ Criar rascunho Gmail</button>
-      <button class="btn-send" style="background:#555" onclick="clearLS()">🗑 Limpar cache local</button>
-      <span id="ls-indicator" style="font-size:12px;margin-left:8px;"></span>
     </div>
     <div class="send-status" id="send-status"></div>
   </div>
@@ -525,9 +523,10 @@ let state = {
     {id:'01-OPR009',dominio:'Risco Operacional',dominios:['Risco Operacional'],projeto:'Matriz de Riscos',tarefa:'Finalizar material da matriz de risco – apresentação gerentes executivos',responsavel:'Thaís Hesse',prazo:'2026-06-30',status:'⬜ Não iniciado',pct:0,prioridade:'🔴 Alta',obs:'',recorrencia:'Não'},
     {id:'01-POL001',dominio:'Capital',dominios:['Capital','Risco de Crédito','Risco de Mercado','Risco Operacional','Risco de Liquidez','RSAC'],projeto:'Políticas',tarefa:'Política de Gerenciamento Integrado de Riscos',responsavel:'Isabella Folegatti',prazo:'2026-09-30',status:'⬜ Não iniciado',pct:0,prioridade:'🟡 Média',obs:''},
   ], // ──TASKS_END──
-  view:'months', currentMonth:'', currentMonthKey:'', currentWeek:'', currentWeekKey:'',
+  view:'months', currentMonth:'', currentMonthKey:'', currentWeek:'', currentWeekKey:'', currentWeek:'',
   alertFilter: 'Todos',
 };
+const PUBLISHED_AT = 0; // ──PUBLISHED_AT── substituído pelo admPublish()
 
 function diasAte(p){return Math.ceil((new Date(p)-new Date(TODAY))/86400000);}
 // Sempre exibe Isabella como co-responsável; para multi-domínio mostra todos
@@ -634,10 +633,9 @@ function renderWeeks(){
 }
 
 function navDays(weekKey,weekNum){state.view='days';state.currentWeek=weekNum;state.currentWeekKey=weekKey;refreshBreadcrumb();renderDays(weekKey);}
-
 function refreshCurrentView(){
   if(state.view==='months')renderMonths();
-  else if(state.view==='weeks')renderWeeks();
+  else if(state.view==='weeks')renderWeeks(state.currentMonthKey);
   else if(state.view==='days')renderDays(state.currentWeekKey);
 }
 
@@ -679,11 +677,11 @@ function renderDays(weekKey){
 }
 
 function concludeTask(id){
-  const t=state.tasks.find(x=>x.id===id);if(!t)return;t.status='✅ Concluído';t.pct=100;
-  saveToLS();refreshKPIs();
+  const t=state.tasks.find(x=>x.id===id);if(!t)return;t.status='✅ Concluído';t.pct=100;refreshKPIs();
   const row=document.getElementById('row-'+id);
   if(row){row.className='task-row t-grn t-done';row.querySelector('.task-status').textContent='✅ Concluído';const pctWrap=row.querySelector('.task-pct-wrap');if(pctWrap)pctWrap.outerHTML='<div class="task-pct-wrap"><div class="task-pct-bar"><div class="task-pct-fill" style="width:100%;background:var(--green)"></div></div><div class="task-pct-num" style="color:var(--green)">✅</div></div>';row.querySelector('.btn-done').outerHTML='<span style="font-size:18px">✅</span>';}
   refreshAlertPanel();
+  saveToLS();
 }
 
 // ─── TEAM PANEL ─────────────────────────────────────────────────────
@@ -745,34 +743,13 @@ function refreshAlertPanel(){
 }
 
 function sendDraftAlert(){
-  const st=document.getElementById('send-status');
-  const filter=state.alertFilter;
-  const targets=filter==='Todos'?Object.keys(RESPONSAVEIS):[filter];
-  let opened=0;
-  targets.forEach(name=>{
-    const info=RESPONSAVEIS[name];if(!info)return;
-    const tasks=state.tasks.filter(t=>{
-      const doms=t.dominios||[t.dominio];
-      const isResp=t.responsavel===name||doms.some(d=>alertRecipientsForDomain(d).includes(name));
-      return isResp&&!t.status.includes('Concluído')&&!t.status.includes('Aderente');
-    });
-    if(tasks.length===0)return;
-    const atrasadas=tasks.filter(t=>diasAte(t.prazo)<0);
-    const prox7=tasks.filter(t=>{const d=diasAte(t.prazo);return d>=0&&d<=7;});
-    const demais=tasks.filter(t=>diasAte(t.prazo)>7);
-    const fmt=p=>new Date(p+'T12:00:00').toLocaleDateString('pt-BR');
-    const subject='📋 Suas tarefas — Riscos & Capital · '+fmt(TODAY);
-    let body='Olá, '+name.split(' ')[0]+'!\n\nSeguem suas tarefas da área de Riscos & Capital:\n';
-    if(atrasadas.length){body+='\n🔴 ATRASADAS ('+atrasadas.length+')\n';atrasadas.forEach(t=>{body+='  • ['+t.id+'] '+t.tarefa+'\n    Prazo: '+fmt(t.prazo)+' | '+t.status+'\n';});}
-    if(prox7.length){body+='\n⚠️ VENCENDO EM 7 DIAS ('+prox7.length+')\n';prox7.forEach(t=>{body+='  • ['+t.id+'] '+t.tarefa+'\n    Prazo: '+fmt(t.prazo)+' | '+t.status+'\n';});}
-    if(demais.length){body+='\n📌 DEMAIS TAREFAS ('+demais.length+')\n';demais.forEach(t=>{body+='  • ['+t.id+'] '+t.tarefa+'\n    Prazo: '+fmt(t.prazo)+' | '+t.status+'\n';});}
-    body+='\nAcesse o painel: '+BASE_URL+'\n\nAtenciosamente,\nIsabella Folegatti\nGestora de Riscos e Capital — meutudo';
-    const url='https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(info.email)+'&su='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
-    window.open(url,'_blank');
-    opened++;
-  });
-  st.className='send-status info';st.style.display='block';
-  st.textContent=opened>0?'✉️ '+opened+' janela(s) abertas no Gmail — revise e salve como rascunho ou envie.':'⚠️ Nenhuma tarefa pendente para o filtro selecionado.';
+  const tasks=state.tasks.filter(t=>!t.status.includes('Concluído')&&!t.status.includes('Aderente'));
+  if(!tasks.length){alert('Nenhuma tarefa pendente.');return;}
+  const lines=tasks.map(t=>`[${t.status}] ${t.tarefa} — ${t.responsavel} — Prazo: ${t.prazo}`).join('%0A');
+  const subject=encodeURIComponent('Resumo de Tarefas — Riscos e Capital');
+  const body=encodeURIComponent('Olá,%0A%0ASeguem as tarefas pendentes:%0A%0A')+lines;
+  const emails=VALID_TOKENS.map(v=>v.email).join(',');
+  window.open('https://mail.google.com/mail/?view=cm&fs=1&to='+emails+'&su='+subject+'&body='+body,'_blank');
 }
 
 // ─── MODAL ────────────────────────────────────────────────────────────────────────────────
@@ -828,10 +805,11 @@ function saveTask(){
   const prefix=PREFIXOS[dominio]||'XX';const existing=state.tasks.filter(t=>t.id.startsWith(prefix+'-')).length;const id=prefix+'-'+String(existing+1).padStart(3,'0');
   const dd=diasAte(prazo);const status=dd<0?'🔴 Atrasado':'⬜ Não iniciado';
   state.tasks.push({id,dominio,projeto,tarefa,responsavel:resp,prazo,status,pct:0,prioridade,obs,anexo,anexoNome});
-  saveToLS();refreshKPIs();refreshCurrentView();refreshAlertPanel();
+  refreshKPIs();if(state.view==='months')renderMonths();refreshAlertPanel();
   _anexoFileData=null;
   document.getElementById('f-tarefa').value='';document.getElementById('f-dominio').value='';document.getElementById('f-resp').value='';document.getElementById('f-prazo').value='';document.getElementById('f-obs').value='';document.getElementById('f-anexo').value='';document.getElementById('f-anexo-file-name').textContent='';switchAnexoMode('link');
   const aiDiv=document.getElementById('ai-response');aiDiv.style.display='block';aiDiv.textContent='✅ Tarefa '+id+' registrada! Prazo: '+new Date(prazo+'T12:00:00').toLocaleDateString('pt-BR')+'.';
+  saveToLS();
 }
 
 function renderUpdateList(q=''){
@@ -867,8 +845,8 @@ function updatePct(id,val){
   const t=state.tasks.find(x=>x.id===id);if(!t)return;const pct=Math.min(100,Math.max(0,parseInt(val)||0));t.pct=pct;
   if(pct===100)t.status='✅ Concluído';else if(pct>0)t.status='🔵 Em andamento';else t.status='⬜ Não iniciado';
   const sp=document.getElementById('ustatus-'+id);if(sp)sp.textContent=t.status;
-  saveToLS();refreshKPIs();refreshCurrentView();
-}
+  refreshKPIs();if(state.view==='months')renderMonths();
+saveToLS();}
 
 function renderConcludeList(){
   const tasks=state.tasks.filter(t=>!t.status.includes('Concluído')&&!t.status.includes('Aderente'));
@@ -878,7 +856,8 @@ function renderConcludeList(){
 
 function concludeChecked(){
   document.querySelectorAll('#conclude-list input[type=checkbox]:checked').forEach(cb=>{const id=cb.id.replace('chk-','');const t=state.tasks.find(x=>x.id===id);if(t){t.status='✅ Concluído';t.pct=100;}});
-  saveToLS();refreshKPIs();refreshCurrentView();renderConcludeList();
+  refreshKPIs();if(state.view==='months')renderMonths();renderConcludeList();
+  saveToLS();
 }
 
 // ─── MOBILE EXPAND ─────────────────────────────────────────────────────────────
@@ -1030,6 +1009,9 @@ async function admPublish(){
   const tasksInner=JSON.stringify(state.tasks).slice(1,-1);
   let updated=src.replace(/const VALID_TOKENS = \[.*?\];/s,'const VALID_TOKENS = '+tokenJSON+';');
   updated=updated.replace(/\/\/ ──TASKS_START──[\s\S]*?\/\/ ──TASKS_END──/,()=>'// ──TASKS_START──\n    '+tasksInner+'\n  ], // ──TASKS_END──');
+  const nowTs=Date.now();
+  updated=updated.replace(/const PUBLISHED_AT = \d+;/,'const PUBLISHED_AT = '+nowTs+';');
+  if(!updated.includes('// ──TASKS_END──')){statusEl.textContent='❌ Âncoras de tarefas não encontradas. Faça upload do index.html correto primeiro.';return;}
 
   statusEl.textContent='⏳ Obtendo versão atual do GitHub...';
   const apiBase=`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`;
@@ -1049,13 +1031,13 @@ async function admPublish(){
 
   statusEl.textContent='⏳ Publicando...';
   function toBase64utf8(str){const bytes=new TextEncoder().encode(str);let bin='';bytes.forEach(b=>bin+=String.fromCharCode(b));return btoa(bin);}
-  const content=toBase64utf8(updated);
+  const content=toBase64utf8(unescape(encodeURIComponent(updated)));
   try{
     const r=await fetch(apiBase,{method:'PUT',headers,body:JSON.stringify({
-      message:'Atualizar painel via admPublish — '+new Date().toLocaleString('pt-BR'),
+      message:'Atualizar acessos via painel admin',
       content,sha
     })});
-    if(!r.ok){const err=await r.json().catch(()=>({}));throw new Error(r.status+' '+(err.message||''));}
+    if(!r.ok)throw new Error(r.status);
     statusEl.innerHTML='✅ <b>Publicado!</b> As pessoas já poderão acessar em ~1 minuto.';
   }catch(e){
     statusEl.textContent='❌ Erro ao publicar: '+e.message;
@@ -1071,30 +1053,51 @@ async function admExport(){
   const tasksInner=JSON.stringify(state.tasks).slice(1,-1);
   let updated=src.replace(/const VALID_TOKENS = \[.*?\];/s,'const VALID_TOKENS = '+tokenJSON+';');
   updated=updated.replace(/\/\/ ──TASKS_START──[\s\S]*?\/\/ ──TASKS_END──/,()=>'// ──TASKS_START──\n    '+tasksInner+'\n  ], // ──TASKS_END──');
+  const nowTs=Date.now();
+  updated=updated.replace(/const PUBLISHED_AT = \d+;/,'const PUBLISHED_AT = '+nowTs+';');
   const blob=new Blob([updated],{type:'text/html;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download='index.html';a.click();
   URL.revokeObjectURL(a.href);
 }
 
+// ─── INIT ────────────────────────────────────────────────────────────────────
+
 // ─── PERSISTÊNCIA LOCAL ──────────────────────────────────────────────────────
 const LS_KEY='mt_riscos_tasks_v2';
 function saveToLS(){
   try{
     localStorage.setItem(LS_KEY,JSON.stringify(state.tasks));
+    localStorage.setItem(LS_KEY+'_savedAt', String(Date.now()));
     const ind=document.getElementById('ls-indicator');
     if(ind){ind.textContent='💾 Salvo';ind.style.color='var(--green)';clearTimeout(ind._t);ind._t=setTimeout(()=>{ind.textContent='';},3000);}
   }catch(e){console.warn('LS cheio',e);}
 }
 function loadFromLS(){
-  try{const raw=localStorage.getItem(LS_KEY);if(raw){const p=JSON.parse(raw);if(Array.isArray(p)&&p.length>0){state.tasks=p;return true;}}}catch{}
+  try{
+    const raw=localStorage.getItem(LS_KEY);
+    if(raw){
+      const p=JSON.parse(raw);
+      if(Array.isArray(p)&&p.length>0){
+        const lsSavedAt=+(localStorage.getItem(LS_KEY+'_savedAt')||0);
+        if(PUBLISHED_AT>0&&lsSavedAt<=PUBLISHED_AT){
+          localStorage.removeItem(LS_KEY);
+          localStorage.removeItem(LS_KEY+'_savedAt');
+          return false;
+        }
+        state.tasks=p;
+        return true;
+      }
+    }
+  }catch{}
   return false;
 }
 function clearLS(){
   if(!confirm('Limpar dados locais e recarregar tarefas do HTML publicado?'))return;
-  localStorage.removeItem(LS_KEY);location.reload();
+  localStorage.removeItem(LS_KEY);
+  localStorage.removeItem(LS_KEY+'_savedAt');
+  location.reload();
 }
-// ─── INIT ────────────────────────────────────────────────────────────────────
 function init(){
   if(!checkAccess())return;
   loadFromLS();
