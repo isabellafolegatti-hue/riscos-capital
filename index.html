@@ -338,6 +338,8 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
   <div class="topbar-right">
     <div class="topbar-date" id="topbar-date"></div>
 <button class="btn-adm" id="btn-adm" onclick="admOpen()">⚙ Acessos</button>
+<button id="btn-publish-quick" onclick="admPublish()" style="display:none;background:#00A86B;color:#fff;border:none;padding:7px 14px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;margin-left:6px;">🚀 Publicar</button>
+<span id="btn-publish-status" style="display:none;font-size:11px;color:#aaa;margin-left:6px;"></span>
     <button class="btn-new" onclick="openModal()">+ Nova tarefa / Atualizar</button>
   </div>
 </div>
@@ -472,9 +474,58 @@ function alertRecipientsForDomain(dom) {
 
 let state = {
   tasks: [ // ──TASKS_START──
-    {"id":"01-CAP001","dominio":"Capital","dominios":["Capital"],"projeto":"Plano de Capital","tarefa":"Plano de Capital","responsavel":"Davi Mathielo","prazo":"2026-08-07","status":"🔵 Em andamento","pct":20,"prioridade":"🔴 Alta","obs":"","anexos":[{"url":"https://docs.google.com/document/d/1GIzFiTvMUhuTKnvbcLPv3-lcaet-kNtY/edit?usp=drive_link&ouid=117721363248063509704&rtpof=true&sd=true","nome":""}]},{"id":"01-CAP002","dominio":"Capital","dominios":["Capital"],"projeto":"Capital S4","tarefa":"Apuração do Patrimônio de Referência (PR) – Metodologia S4","responsavel":"Davi Mathielo","prazo":"2026-09-30","status":"🔵 Em andamento","pct":20,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-CAP003","dominio":"Capital","dominios":["Capital"],"projeto":"Capital S4","tarefa":"Apuração do Requerimento Mínimo de PR (Índices de Capital S4)","responsavel":"Davi Mathielo","prazo":"2026-09-30","status":"🔵 Em andamento","pct":20,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-CAP004","dominio":"Capital","dominios":["Capital"],"projeto":"Capital S4","tarefa":"Cálculo das Parcelas de RWA – Metodologia S4","responsavel":"Davi Mathielo","prazo":"2026-09-30","status":"🔵 Em andamento","pct":20,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-CAP005","dominio":"Capital","dominios":["Capital"],"projeto":"Políticas","tarefa":"Política de Gestão de Capital","responsavel":"Davi Mathielo","prazo":"2026-09-30","status":"🔵 Em andamento","pct":20,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-CAP006","dominio":"Capital","dominios":["Capital"],"projeto":"Políticas","tarefa":"Política de Remuneração de Administradores","responsavel":"Davi Mathielo","prazo":"2026-09-30","status":"⬜ Não iniciado","pct":0,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-CAP007","dominio":"Capital","dominios":["Capital"],"projeto":"Políticas","tarefa":"Política de Terceirização e Seleção de Prestadores","responsavel":"Davi Mathielo","prazo":"2026-09-30","status":"⬜ Não iniciado","pct":0,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-DLO001","dominio":"Capital","dominios":["Capital"],"projeto":"Regulatório BCB","tarefa":"2061 – DLO – Demonstrativo de Limites Operacionais","responsavel":"Davi Mathielo","prazo":"2026-09-30","status":"🔵 Em andamento","pct":20,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-DLI001","dominio":"Capital","dominios":["Capital"],"projeto":"Regulatório BCB","tarefa":"2062 – DLI – Demonstrativo de Limites Operacionais Individuais","responsavel":"Davi Mathielo","prazo":"2026-09-30","status":"🔵 Em andamento","pct":20,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-CRD001","dominio":"Risco de Crédito","dominios":["Risco de Crédito"],"projeto":"Crédito S4","tarefa":"Gerenciamento de Risco de Crédito – Adequação S4","responsavel":"Davi Mathielo","prazo":"2026-12-30","status":"🔵 Em andamento","pct":20,"prioridade":"🟢 Baixa","obs":"","anexos":[]},{"id":"01-CRD002","dominio":"Risco de Crédito","dominios":["Risco de Crédito"],"projeto":"Estresse","tarefa":"Programa de Testes de Estresse Estruturados","responsavel":"Davi Mathielo","prazo":"2026-09-30","status":"⬜ Não iniciado","pct":0,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-CRD003","dominio":"Risco de Crédito","dominios":["Risco de Crédito"],"projeto":"Políticas","tarefa":"Política de Risco de Crédito","responsavel":"Davi Mathielo","prazo":"2026-09-30","status":"🔵 Em andamento","pct":20,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-MRC001","dominio":"Risco de Mercado","dominios":["Risco de Mercado"],"projeto":"IRRBB","tarefa":"IRRBB – Requerimento de Capital e Gerenciamento","responsavel":"Davi Mathielo","prazo":"2026-09-30","status":"🔵 Em andamento","pct":20,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-MRC002","dominio":"Risco de Mercado","dominios":["Risco de Mercado"],"projeto":"Mercado S4","tarefa":"Gerenciamento de Risco de Mercado – Estrutura S4","responsavel":"Davi Mathielo","prazo":"2026-09-30","status":"⬜ Não iniciado","pct":0,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-MRC003","dominio":"Risco de Mercado","dominios":["Risco de Mercado"],"projeto":"Políticas","tarefa":"Política de Risco de Mercado e IRRBB","responsavel":"Davi Mathielo","prazo":"2026-09-30","status":"🔵 Em andamento","pct":20,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-DDR001","dominio":"Risco de Mercado","dominios":["Risco de Mercado"],"projeto":"Regulatório BCB","tarefa":"2011 – DDR – Demonstrativo Diário de Requerimento de Capital e Limites Operacionais","responsavel":"Davi Mathielo","prazo":"2026-09-30","status":"🔵 Em andamento","pct":20,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-DRM001","dominio":"Risco de Mercado","dominios":["Risco de Mercado"],"projeto":"Regulatório BCB","tarefa":"2060 – DRM – Demonstrativo de Risco de Mercado","responsavel":"Davi Mathielo","prazo":"2026-09-30","status":"🔵 Em andamento","pct":20,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-LIQ001","dominio":"Risco de Liquidez","dominios":["Risco de Liquidez"],"projeto":"Liquidez S4","tarefa":"Gerenciamento de Risco de Liquidez – Adequação S4","responsavel":"Davi Mathielo","prazo":"2099-12-31","status":"✅ Aderente","pct":100,"prioridade":"—","obs":"","anexos":[]},{"id":"01-LIQ002","dominio":"Risco de Liquidez","dominios":["Risco de Liquidez"],"projeto":"Políticas","tarefa":"Política de Risco de Liquidez","responsavel":"Davi Mathielo","prazo":"2026-09-30","status":"🔵 Em andamento","pct":20,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-LIQ003","dominio":"Risco de Liquidez","dominios":["Risco de Liquidez"],"projeto":"Planos","tarefa":"Plano de Contingência de Liquidez","responsavel":"Davi Mathielo","prazo":"2026-09-30","status":"🔵 Em andamento","pct":20,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-DRL001","dominio":"Risco de Liquidez","dominios":["Risco de Liquidez"],"projeto":"Regulatório BCB","tarefa":"2160 – DRL – Demonstrativo de Risco de Liquidez","responsavel":"Davi Mathielo","prazo":"2026-09-30","status":"🔵 Em andamento","pct":20,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-OPR001","dominio":"Risco Operacional","dominios":["Risco Operacional"],"projeto":"Operacional S4","tarefa":"Gerenciamento de Risco Operacional – Adequação S4","responsavel":"Thaís Hesse","prazo":"2026-12-30","status":"🔵 Em andamento","pct":20,"prioridade":"🟢 Baixa","obs":"","anexos":[]},{"id":"01-OPR002","dominio":"Risco Operacional","dominios":["Risco Operacional"],"projeto":"Políticas","tarefa":"Política de Risco Operacional","responsavel":"Thaís Hesse","prazo":"2026-09-30","status":"🔵 Em andamento","pct":20,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-OPR003","dominio":"Risco Operacional","dominios":["Risco Operacional"],"projeto":"Políticas","tarefa":"Política de Gestão de Continuidade de Negócios","responsavel":"Thaís Hesse","prazo":"2026-09-30","status":"🔵 Em andamento","pct":20,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-OPR004","dominio":"Risco Operacional","dominios":["Risco Operacional"],"projeto":"Planos","tarefa":"Plano de Continuidade de Negócios (PCN)","responsavel":"Thaís Hesse","prazo":"2026-09-30","status":"🔵 Em andamento","pct":20,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-RSC001","dominio":"RSAC","dominios":["RSAC"],"projeto":"RSAC","tarefa":"Gerenciamento de Risco Social, Ambiental e Climático (RSAC)","responsavel":"Thaís Hesse","prazo":"2099-12-31","status":"✅ Aderente","pct":100,"prioridade":"—","obs":"","anexos":[]},{"id":"01-RSC002","dominio":"RSAC","dominios":["RSAC"],"projeto":"Políticas","tarefa":"Política de Riscos Social, Ambiental e Climático (RSAC)","responsavel":"Thaís Hesse","prazo":"2026-09-30","status":"🔵 Em andamento","pct":20,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-RSC003","dominio":"RSAC","dominios":["RSAC"],"projeto":"GRSAC","tarefa":"Relatório GRSAC – Riscos e Oportunidades Sociais, Ambientais e Climáticos","responsavel":"Thaís Hesse","prazo":"2026-12-31","status":"🔵 Em andamento","pct":10,"prioridade":"🟢 Baixa","obs":"","anexos":[]},{"id":"01-DRS001","dominio":"RSAC","dominios":["RSAC"],"projeto":"Regulatório BCB","tarefa":"2030 – DRSAC – Documento de Risco Social, Ambiental e Climático","responsavel":"Thaís Hesse","prazo":"2026-09-30","status":"🔵 Em andamento","pct":20,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-PIL001","dominio":"Capital","dominios":["Capital","Risco de Crédito","Risco de Mercado","Risco Operacional","Risco de Liquidez","RSAC"],"projeto":"Pilar 3","tarefa":"Relatório de Pilar 3","responsavel":"Isabella Folegatti","prazo":"2026-11-30","status":"⬜ Não iniciado","pct":0,"prioridade":"🟢 Baixa","obs":"","anexos":[]},{"id":"01-COM001","dominio":"Capital","dominios":["Capital","Risco de Crédito","Risco de Mercado","Risco Operacional","Risco de Liquidez","RSAC"],"projeto":"Governança","tarefa":"Comitê de Riscos – Constituição e Funcionamento (Art. 45, Res. CMN 4557/2017)","responsavel":"Isabella Folegatti","prazo":"2026-08-07","status":"🔵 Em andamento","pct":30,"prioridade":"🔴 Alta","obs":"","anexos":[]},{"id":"01-RAS001","dominio":"Capital","dominios":["Capital","Risco de Crédito","Risco de Mercado","Risco Operacional","Risco de Liquidez","RSAC"],"projeto":"Apetite a Risco","tarefa":"Declaração de Apetite a Riscos – RAS/DAR","responsavel":"Isabella Folegatti","prazo":"2026-09-30","status":"🔵 Em andamento","pct":20,"prioridade":"🟡 Média","obs":"","anexos":[]},{"id":"01-COM002","dominio":"Capital","dominios":["Capital","Risco de Crédito","Risco de Mercado","Risco Operacional","Risco de Liquidez","RSAC"],"projeto":"Comitê","tarefa":"Finalizar material do comitê de julho","responsavel":"Isabella Folegatti","prazo":"2026-06-30","status":"🔴 Atrasado","pct":10,"prioridade":"🔴 Alta","obs":"","recorrencia":"A cada 30 dias","anexos":[]},{"id":"01-OPR005","dominio":"Risco Operacional","dominios":["Risco Operacional"],"projeto":"PCN","tarefa":"PCN – Plano de Continuidade de Negócios","responsavel":"Thaís Hesse","prazo":"2026-08-01","status":"⬜ Não iniciado","pct":0,"prioridade":"🟡 Média","obs":"","recorrencia":"Não","anexos":[]},{"id":"01-OPR006","dominio":"Risco Operacional","dominios":["Risco Operacional"],"projeto":"BIA","tarefa":"BIA – Business Impact Analysis","responsavel":"Thaís Hesse","prazo":"2026-08-01","status":"⬜ Não iniciado","pct":0,"prioridade":"🟡 Média","obs":"","recorrencia":"Não","anexos":[]},{"id":"01-DSH001","dominio":"Capital","dominios":["Capital","Risco de Crédito","Risco de Mercado","Risco Operacional","Risco de Liquidez","RSAC"],"projeto":"Dashboard","tarefa":"Atualizar dashboard de riscos","responsavel":"Isabella Folegatti","prazo":"2026-06-30","status":"🔴 Atrasado","pct":30,"prioridade":"🔴 Alta","obs":"","recorrencia":"A cada 30 dias","anexos":[]},{"id":"01-PLN001","dominio":"Capital","dominios":["Capital","Risco de Crédito","Risco de Mercado","Risco Operacional","Risco de Liquidez","RSAC"],"projeto":"Plano de Capital","tarefa":"Revisão do documento – plano de capital","responsavel":"Isabella Folegatti","prazo":"2026-06-30","status":"🔴 Atrasado","pct":0,"prioridade":"🔴 Alta","obs":"","recorrencia":"Não","anexos":[]},{"id":"01-OPR007","dominio":"Risco Operacional","dominios":["Risco Operacional"],"projeto":"Matriz de Riscos","tarefa":"Projeto Matriz de Riscos – dashboard","responsavel":"Thaís Hesse","prazo":"2026-09-01","status":"⬜ Não iniciado","pct":0,"prioridade":"🟢 Baixa","obs":"","recorrencia":"Não","anexos":[]},{"id":"01-OPR008","dominio":"Risco Operacional","dominios":["Risco Operacional"],"projeto":"Matriz de Riscos","tarefa":"Marcar reuniões com gerex – matriz de riscos","responsavel":"Isabella Folegatti","prazo":"2026-06-26","status":"🔴 Atrasado","pct":0,"prioridade":"🔴 Alta","obs":"","recorrencia":"Não","soloResp":true,"anexos":[]},{"id":"01-OPR009","dominio":"Risco Operacional","dominios":["Risco Operacional"],"projeto":"Matriz de Riscos","tarefa":"Finalizar material da matriz de risco – apresentação gerentes executivos","responsavel":"Thaís Hesse","prazo":"2026-06-30","status":"🔴 Atrasado","pct":0,"prioridade":"🔴 Alta","obs":"","recorrencia":"Não","anexos":[]},{"id":"01-POL001","dominio":"Capital","dominios":["Capital","Risco de Crédito","Risco de Mercado","Risco Operacional","Risco de Liquidez","RSAC"],"projeto":"Políticas","tarefa":"Política de Gerenciamento Integrado de Riscos","responsavel":"Isabella Folegatti","prazo":"2026-09-30","status":"⬜ Não iniciado","pct":0,"prioridade":"🟡 Média","obs":"","anexos":[]}
+    // ── CAPITAL (Davi Mathielo) ──────────────────────────────────────────────────
+    {id:'01-CAP001',dominio:'Capital',dominios:['Capital'],projeto:'Plano de Capital',tarefa:'Plano de Capital',responsavel:'Davi Mathielo',prazo:'2026-08-07',status:'🔵 Em andamento',pct:20,prioridade:'🔴 Alta',obs:''},
+    {id:'01-CAP002',dominio:'Capital',dominios:['Capital'],projeto:'Capital S4',tarefa:'Apuração do Patrimônio de Referência (PR) – Metodologia S4',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-CAP003',dominio:'Capital',dominios:['Capital'],projeto:'Capital S4',tarefa:'Apuração do Requerimento Mínimo de PR (Índices de Capital S4)',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-CAP004',dominio:'Capital',dominios:['Capital'],projeto:'Capital S4',tarefa:'Cálculo das Parcelas de RWA – Metodologia S4',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-CAP005',dominio:'Capital',dominios:['Capital'],projeto:'Políticas',tarefa:'Política de Gestão de Capital',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-CAP006',dominio:'Capital',dominios:['Capital'],projeto:'Políticas',tarefa:'Política de Remuneração de Administradores',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'⬜ Não iniciado',pct:0,prioridade:'🟡 Média',obs:''},
+    {id:'01-CAP007',dominio:'Capital',dominios:['Capital'],projeto:'Políticas',tarefa:'Política de Terceirização e Seleção de Prestadores',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'⬜ Não iniciado',pct:0,prioridade:'🟡 Média',obs:''},
+    {id:'01-DLO001',dominio:'Capital',dominios:['Capital'],projeto:'Regulatório BCB',tarefa:'2061 – DLO – Demonstrativo de Limites Operacionais',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-DLI001',dominio:'Capital',dominios:['Capital'],projeto:'Regulatório BCB',tarefa:'2062 – DLI – Demonstrativo de Limites Operacionais Individuais',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    // ── RISCO DE CRÉDITO (Davi Mathielo) ────────────────────────────────────────
+    {id:'01-CRD001',dominio:'Risco de Crédito',dominios:['Risco de Crédito'],projeto:'Crédito S4',tarefa:'Gerenciamento de Risco de Crédito – Adequação S4',responsavel:'Davi Mathielo',prazo:'2026-12-30',status:'🔵 Em andamento',pct:20,prioridade:'🟢 Baixa',obs:''},
+    {id:'01-CRD002',dominio:'Risco de Crédito',dominios:['Risco de Crédito'],projeto:'Estresse',tarefa:'Programa de Testes de Estresse Estruturados',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'⬜ Não iniciado',pct:0,prioridade:'🟡 Média',obs:''},
+    {id:'01-CRD003',dominio:'Risco de Crédito',dominios:['Risco de Crédito'],projeto:'Políticas',tarefa:'Política de Risco de Crédito',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    // ── RISCO DE MERCADO (Davi Mathielo) ────────────────────────────────────────
+    {id:'01-MRC001',dominio:'Risco de Mercado',dominios:['Risco de Mercado'],projeto:'IRRBB',tarefa:'IRRBB – Requerimento de Capital e Gerenciamento',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-MRC002',dominio:'Risco de Mercado',dominios:['Risco de Mercado'],projeto:'Mercado S4',tarefa:'Gerenciamento de Risco de Mercado – Estrutura S4',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'⬜ Não iniciado',pct:0,prioridade:'🟡 Média',obs:''},
+    {id:'01-MRC003',dominio:'Risco de Mercado',dominios:['Risco de Mercado'],projeto:'Políticas',tarefa:'Política de Risco de Mercado e IRRBB',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-DDR001',dominio:'Risco de Mercado',dominios:['Risco de Mercado'],projeto:'Regulatório BCB',tarefa:'2011 – DDR – Demonstrativo Diário de Requerimento de Capital e Limites Operacionais',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-DRM001',dominio:'Risco de Mercado',dominios:['Risco de Mercado'],projeto:'Regulatório BCB',tarefa:'2060 – DRM – Demonstrativo de Risco de Mercado',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    // ── RISCO DE LIQUIDEZ (Davi Mathielo) ───────────────────────────────────────
+    {id:'01-LIQ001',dominio:'Risco de Liquidez',dominios:['Risco de Liquidez'],projeto:'Liquidez S4',tarefa:'Gerenciamento de Risco de Liquidez – Adequação S4',responsavel:'Davi Mathielo',prazo:'2099-12-31',status:'✅ Aderente',pct:100,prioridade:'—',obs:''},
+    {id:'01-LIQ002',dominio:'Risco de Liquidez',dominios:['Risco de Liquidez'],projeto:'Políticas',tarefa:'Política de Risco de Liquidez',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-LIQ003',dominio:'Risco de Liquidez',dominios:['Risco de Liquidez'],projeto:'Planos',tarefa:'Plano de Contingência de Liquidez',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-DRL001',dominio:'Risco de Liquidez',dominios:['Risco de Liquidez'],projeto:'Regulatório BCB',tarefa:'2160 – DRL – Demonstrativo de Risco de Liquidez',responsavel:'Davi Mathielo',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    // ── RISCO OPERACIONAL (Thaís Hesse) ─────────────────────────────────────────
+    {id:'01-OPR001',dominio:'Risco Operacional',dominios:['Risco Operacional'],projeto:'Operacional S4',tarefa:'Gerenciamento de Risco Operacional – Adequação S4',responsavel:'Thaís Hesse',prazo:'2026-12-30',status:'🔵 Em andamento',pct:20,prioridade:'🟢 Baixa',obs:''},
+    {id:'01-OPR002',dominio:'Risco Operacional',dominios:['Risco Operacional'],projeto:'Políticas',tarefa:'Política de Risco Operacional',responsavel:'Thaís Hesse',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-OPR003',dominio:'Risco Operacional',dominios:['Risco Operacional'],projeto:'Políticas',tarefa:'Política de Gestão de Continuidade de Negócios',responsavel:'Thaís Hesse',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-OPR004',dominio:'Risco Operacional',dominios:['Risco Operacional'],projeto:'Planos',tarefa:'Plano de Continuidade de Negócios (PCN)',responsavel:'Thaís Hesse',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    // ── RSAC (Thaís Hesse) ───────────────────────────────────────────────────────
+    {id:'01-RSC001',dominio:'RSAC',dominios:['RSAC'],projeto:'RSAC',tarefa:'Gerenciamento de Risco Social, Ambiental e Climático (RSAC)',responsavel:'Thaís Hesse',prazo:'2099-12-31',status:'✅ Aderente',pct:100,prioridade:'—',obs:''},
+    {id:'01-RSC002',dominio:'RSAC',dominios:['RSAC'],projeto:'Políticas',tarefa:'Política de Riscos Social, Ambiental e Climático (RSAC)',responsavel:'Thaís Hesse',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    {id:'01-RSC003',dominio:'RSAC',dominios:['RSAC'],projeto:'GRSAC',tarefa:'Relatório GRSAC – Riscos e Oportunidades Sociais, Ambientais e Climáticos',responsavel:'Thaís Hesse',prazo:'2026-12-31',status:'🔵 Em andamento',pct:10,prioridade:'🟢 Baixa',obs:''},
+    {id:'01-DRS001',dominio:'RSAC',dominios:['RSAC'],projeto:'Regulatório BCB',tarefa:'2030 – DRSAC – Documento de Risco Social, Ambiental e Climático',responsavel:'Thaís Hesse',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+    // ── MULTI-DOMÍNIO (Isabella Folegatti — gestora integradora) ─────────────────
+    {id:'01-PIL001',dominio:'Capital',dominios:['Capital','Risco de Crédito','Risco de Mercado','Risco Operacional','Risco de Liquidez','RSAC'],projeto:'Pilar 3',tarefa:'Relatório de Pilar 3',responsavel:'Isabella Folegatti',prazo:'2026-11-30',status:'⬜ Não iniciado',pct:0,prioridade:'🟢 Baixa',obs:''},
+    {id:'01-COM001',dominio:'Capital',dominios:['Capital','Risco de Crédito','Risco de Mercado','Risco Operacional','Risco de Liquidez','RSAC'],projeto:'Governança',tarefa:'Comitê de Riscos – Constituição e Funcionamento (Art. 45, Res. CMN 4557/2017)',responsavel:'Isabella Folegatti',prazo:'2026-08-07',status:'🔵 Em andamento',pct:30,prioridade:'🔴 Alta',obs:''},
+    {id:'01-RAS001',dominio:'Capital',dominios:['Capital','Risco de Crédito','Risco de Mercado','Risco Operacional','Risco de Liquidez','RSAC'],projeto:'Apetite a Risco',tarefa:'Declaração de Apetite a Riscos – RAS/DAR',responsavel:'Isabella Folegatti',prazo:'2026-09-30',status:'🔵 Em andamento',pct:20,prioridade:'🟡 Média',obs:''},
+
+    // ── NOVAS TAREFAS (jun/2026) ─────────────────────────────────────────────────
+    {id:'01-COM002',dominio:'Capital',dominios:['Capital','Risco de Crédito','Risco de Mercado','Risco Operacional','Risco de Liquidez','RSAC'],projeto:'Comitê',tarefa:'Finalizar material do comitê de julho',responsavel:'Isabella Folegatti',prazo:'2026-06-30',status:'🔵 Em andamento',pct:10,prioridade:'🔴 Alta',obs:'',recorrencia:'A cada 30 dias'},
+    {id:'01-OPR005',dominio:'Risco Operacional',dominios:['Risco Operacional'],projeto:'PCN',tarefa:'PCN – Plano de Continuidade de Negócios',responsavel:'Thaís Hesse',prazo:'2026-08-01',status:'⬜ Não iniciado',pct:0,prioridade:'🟡 Média',obs:'',recorrencia:'Não'},
+    {id:'01-OPR006',dominio:'Risco Operacional',dominios:['Risco Operacional'],projeto:'BIA',tarefa:'BIA – Business Impact Analysis',responsavel:'Thaís Hesse',prazo:'2026-08-01',status:'⬜ Não iniciado',pct:0,prioridade:'🟡 Média',obs:'',recorrencia:'Não'},
+    {id:'01-DSH001',dominio:'Capital',dominios:['Capital','Risco de Crédito','Risco de Mercado','Risco Operacional','Risco de Liquidez','RSAC'],projeto:'Dashboard',tarefa:'Atualizar dashboard de riscos',responsavel:'Isabella Folegatti',prazo:'2026-06-30',status:'🔵 Em andamento',pct:30,prioridade:'🔴 Alta',obs:'',recorrencia:'A cada 30 dias'},
+    {id:'01-PLN001',dominio:'Capital',dominios:['Capital','Risco de Crédito','Risco de Mercado','Risco Operacional','Risco de Liquidez','RSAC'],projeto:'Plano de Capital',tarefa:'Revisão do documento – plano de capital',responsavel:'Isabella Folegatti',prazo:'2026-06-30',status:'⬜ Não iniciado',pct:0,prioridade:'🔴 Alta',obs:'',recorrencia:'Não'},
+    {id:'01-OPR007',dominio:'Risco Operacional',dominios:['Risco Operacional'],projeto:'Matriz de Riscos',tarefa:'Projeto Matriz de Riscos – dashboard',responsavel:'Thaís Hesse',prazo:'2026-09-01',status:'⬜ Não iniciado',pct:0,prioridade:'🟢 Baixa',obs:'',recorrencia:'Não'},
+    {id:'01-OPR008',dominio:'Risco Operacional',dominios:['Risco Operacional'],projeto:'Matriz de Riscos',tarefa:'Marcar reuniões com gerex – matriz de riscos',responsavel:'Isabella Folegatti',prazo:'2026-06-26',status:'⬜ Não iniciado',pct:0,prioridade:'🔴 Alta',obs:'',recorrencia:'Não',soloResp:true},
+    {id:'01-OPR009',dominio:'Risco Operacional',dominios:['Risco Operacional'],projeto:'Matriz de Riscos',tarefa:'Finalizar material da matriz de risco – apresentação gerentes executivos',responsavel:'Thaís Hesse',prazo:'2026-06-30',status:'⬜ Não iniciado',pct:0,prioridade:'🔴 Alta',obs:'',recorrencia:'Não'},
+    {id:'01-POL001',dominio:'Capital',dominios:['Capital','Risco de Crédito','Risco de Mercado','Risco Operacional','Risco de Liquidez','RSAC'],projeto:'Políticas',tarefa:'Política de Gerenciamento Integrado de Riscos',responsavel:'Isabella Folegatti',prazo:'2026-09-30',status:'⬜ Não iniciado',pct:0,prioridade:'🟡 Média',obs:''},
   ], // ──TASKS_END──
-  view:'months', currentMonth:'', currentMonthKey:'', currentWeek:'',
+  view:'months', currentMonth:'', currentMonthKey:'', currentWeek:'', currentWeekKey:'',
   alertFilter: 'Todos',
 };
 
@@ -582,7 +633,13 @@ function renderWeeks(){
   document.getElementById('view-container').innerHTML=html;
 }
 
-function navDays(weekKey,weekNum){state.view='days';state.currentWeek=weekNum;refreshBreadcrumb();renderDays(weekKey);}
+function navDays(weekKey,weekNum){state.view='days';state.currentWeek=weekNum;state.currentWeekKey=weekKey;refreshBreadcrumb();renderDays(weekKey);}
+
+function refreshCurrentView(){
+  if(state.view==='months')renderMonths();
+  else if(state.view==='weeks')renderWeeks();
+  else if(state.view==='days')renderDays(state.currentWeekKey);
+}
 
 // ─── URGÊNCIA POR PRAZO ────────────────────────────────────────────────
 function pctDiasHtml(t){
@@ -688,8 +745,49 @@ function refreshAlertPanel(){
 
 function sendDraftAlert(){
   const st=document.getElementById('send-status');
+  const filter=state.alertFilter;
+  const targets=filter==='Todos'?Object.keys(RESPONSAVEIS):[filter];
+  let opened=0;
+
+  targets.forEach(name=>{
+    const info=RESPONSAVEIS[name];if(!info)return;
+    const tasks=state.tasks.filter(t=>{
+      const doms=t.dominios||[t.dominio];
+      const isResp=t.responsavel===name||doms.some(d=>alertRecipientsForDomain(d).includes(name));
+      return isResp&&!t.status.includes('Concluído')&&!t.status.includes('Aderente');
+    });
+    if(tasks.length===0)return;
+
+    const atrasadas=tasks.filter(t=>diasAte(t.prazo)<0);
+    const prox7=tasks.filter(t=>{const d=diasAte(t.prazo);return d>=0&&d<=7;});
+    const demais=tasks.filter(t=>diasAte(t.prazo)>7);
+    const fmt=p=>new Date(p+'T12:00:00').toLocaleDateString('pt-BR');
+
+    const subject=`📋 Suas tarefas — Riscos & Capital · ${fmt(TODAY)}`;
+    let body=`Olá, ${name.split(' ')[0]}!\n\nSeguem suas tarefas da área de Riscos & Capital:\n`;
+    if(atrasadas.length){
+      body+=`\n🔴 ATRASADAS (${atrasadas.length})\n`;
+      atrasadas.forEach(t=>{body+=`  • [${t.id}] ${t.tarefa}\n    Prazo: ${fmt(t.prazo)} | ${t.status}\n`;});
+    }
+    if(prox7.length){
+      body+=`\n⚠️ VENCENDO EM 7 DIAS (${prox7.length})\n`;
+      prox7.forEach(t=>{body+=`  • [${t.id}] ${t.tarefa}\n    Prazo: ${fmt(t.prazo)} | ${t.status}\n`;});
+    }
+    if(demais.length){
+      body+=`\n📌 DEMAIS TAREFAS (${demais.length})\n`;
+      demais.forEach(t=>{body+=`  • [${t.id}] ${t.tarefa}\n    Prazo: ${fmt(t.prazo)} | ${t.status}\n`;});
+    }
+    body+=`\nAcesse o painel: ${BASE_URL}\n\nAtenciosamente,\nIsabella Folegatti\nGestora de Riscos e Capital — meutudo`;
+
+    const url=`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(info.email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(url,'_blank');
+    opened++;
+  });
+
   st.className='send-status info';st.style.display='block';
-  st.textContent='✉️ Rascunho criado no Gmail — abra seus Rascunhos para enviar.';
+  st.textContent=opened>0
+    ?`✉️ ${opened} janela(s) abertas no Gmail — revise e salve como rascunho ou envie.`
+    :'⚠️ Nenhuma tarefa pendente para o filtro selecionado.';
 }
 
 // ─── MODAL ────────────────────────────────────────────────────────────────────────────────
@@ -754,7 +852,7 @@ function saveTask(){
   const prefix=PREFIXOS[dominio]||'XX';const existing=state.tasks.filter(t=>t.id.startsWith(prefix+'-')).length;const id=prefix+'-'+String(existing+1).padStart(3,'0');
   const dd=diasAte(prazo);const status=dd<0?'🔴 Atrasado':'⬜ Não iniciado';
   state.tasks.push({id,dominio,projeto,tarefa,responsavel:resp,prazo,status,pct:0,prioridade,obs,anexos});
-  refreshKPIs();if(state.view==='months')renderMonths();refreshAlertPanel();
+  refreshKPIs();refreshCurrentView();refreshAlertPanel();
   _anexoFileData=null;
   document.getElementById('f-tarefa').value='';document.getElementById('f-dominio').value='';document.getElementById('f-resp').value='';document.getElementById('f-prazo').value='';document.getElementById('f-obs').value='';document.getElementById('f-anexo').value='';document.getElementById('f-anexo-file-name').textContent='';switchAnexoMode('link');
   const aiDiv=document.getElementById('ai-response');aiDiv.style.display='block';aiDiv.textContent='✅ Tarefa '+id+' registrada! Prazo: '+new Date(prazo+'T12:00:00').toLocaleDateString('pt-BR')+'.';
@@ -801,7 +899,7 @@ function updatePct(id,val){
   const t=state.tasks.find(x=>x.id===id);if(!t)return;const pct=Math.min(100,Math.max(0,parseInt(val)||0));t.pct=pct;
   if(pct===100)t.status='✅ Concluído';else if(pct>0)t.status='🔵 Em andamento';else t.status='⬜ Não iniciado';
   const sp=document.getElementById('ustatus-'+id);if(sp)sp.textContent=t.status;
-  refreshKPIs();if(state.view==='months')renderMonths();
+  refreshKPIs();refreshCurrentView();
 }
 
 function renderConcludeList(){
@@ -812,7 +910,7 @@ function renderConcludeList(){
 
 function concludeChecked(){
   document.querySelectorAll('#conclude-list input[type=checkbox]:checked').forEach(cb=>{const id=cb.id.replace('chk-','');const t=state.tasks.find(x=>x.id===id);if(t){t.status='✅ Concluído';t.pct=100;}});
-  refreshKPIs();if(state.view==='months')renderMonths();renderConcludeList();
+  refreshKPIs();refreshCurrentView();renderConcludeList();
 }
 
 // ─── MOBILE EXPAND ─────────────────────────────────────────────────────────────
@@ -861,15 +959,18 @@ function awManualAccess(){
 }
 
 function checkAccess(){
+  // arquivo local: admin automático
+  if(location.protocol==='file:')return grantAccess({name:'Isabella',admin:true},'local');
   const tk=getUrlToken()||getSavedToken();
   const person=validateToken(tk);
-  if(!person){
-    document.getElementById('access-wall').classList.remove('hidden');
-    return false;
-  }
-  try{localStorage.setItem(TK_LS,tk);}catch{}
+  if(!person){document.getElementById('access-wall').classList.remove('hidden');return false;}
+  return grantAccess(person,tk);
+}
+
+function grantAccess(person,tk){
+  try{if(tk!=='local')localStorage.setItem(TK_LS,tk);}catch{}
   document.getElementById('access-wall').classList.add('hidden');
-  if(person.admin)document.getElementById('btn-adm').style.display='inline-flex';
+  if(person.admin){document.getElementById('btn-adm').style.display='inline-flex';document.getElementById('btn-publish-quick').style.display='inline-flex';document.getElementById('btn-publish-status').style.display='inline';}
   return true;
 }
 
@@ -946,26 +1047,30 @@ async function admPublish(){
   const GH_REPO  = 'riscos-capital';
   const GH_FILE  = 'index.html';
   const statusEl = document.getElementById('adm-publish-status');
+  const quickStatus = document.getElementById('btn-publish-status');
+  const origSet = statusEl.textContent.bind(statusEl);
+  const setStatus = s => { statusEl.textContent = s; if(quickStatus) quickStatus.textContent = s; };
+  setStatus('');
 
   let pat = localStorage.getItem('gh_pat')||'';
   if(!pat){
     pat = prompt('Cole seu GitHub Personal Access Token\n(necessário apenas na primeira vez — será salvo localmente):');
-    if(!pat){statusEl.textContent='Cancelado.';return;}
+    if(!pat){setStatus('Cancelado.');return;}
     localStorage.setItem('gh_pat',pat);
   }
 
-  statusEl.textContent='⏳ Buscando HTML fonte...';
+  setStatus('⏳ Buscando HTML fonte...');
   let src;
   const srcUrl=location.origin+location.pathname+'?nocache='+Date.now();
   try{src=await fetch(srcUrl).then(r=>{if(!r.ok)throw new Error(r.status);return r.text();});}
-  catch(e){statusEl.textContent='❌ Erro ao buscar HTML fonte: '+e.message;return;}
+  catch(e){setStatus('❌ Erro ao buscar HTML fonte: '+e.message);return;}
 
   const tokenJSON=JSON.stringify(VALID_TOKENS);
   const tasksInner=JSON.stringify(state.tasks).slice(1,-1);
   let updated=src.replace(/const VALID_TOKENS = \[.*?\];/s,'const VALID_TOKENS = '+tokenJSON+';');
   updated=updated.replace(/\/\/ ──TASKS_START──[\s\S]*?\/\/ ──TASKS_END──/,()=>'// ──TASKS_START──\n    '+tasksInner+'\n  ], // ──TASKS_END──');
 
-  statusEl.textContent='⏳ Obtendo versão atual do GitHub...';
+  setStatus('⏳ Obtendo versão atual do GitHub...');
   const apiBase=`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`;
   const headers={'Authorization':'token '+pat,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'};
 
@@ -976,34 +1081,42 @@ async function admPublish(){
     const d=await r.json();
     sha=d.sha;
   }catch(e){
-    statusEl.textContent='❌ Token inválido ou sem permissão. Verifique e tente novamente.';
+    setStatus('❌ Token inválido ou sem permissão. Verifique e tente novamente.');
     localStorage.removeItem('gh_pat');
     return;
   }
 
-  statusEl.textContent='⏳ Publicando...';
-  const content=btoa(unescape(encodeURIComponent(updated)));
+  setStatus('⏳ Publicando...');
+  // Encoding robusto para UTF-8 (btoa nativo falha com acentos/emojis)
+  function toBase64utf8(str){
+    const bytes=new TextEncoder().encode(str);
+    let bin='';bytes.forEach(b=>bin+=String.fromCharCode(b));
+    return btoa(bin);
+  }
+  const content=toBase64utf8(updated);
   try{
     const r=await fetch(apiBase,{method:'PUT',headers,body:JSON.stringify({
-      message:'Atualizar acessos via painel admin',
+      message:'Atualizar painel via admPublish — '+new Date().toLocaleString('pt-BR'),
       content,sha
     })});
-    if(!r.ok)throw new Error(r.status);
+    if(!r.ok){const err=await r.json().catch(()=>({}));throw new Error(r.status+' '+(err.message||''));}
     statusEl.innerHTML='✅ <b>Publicado!</b> As pessoas já poderão acessar em ~1 minuto.';
   }catch(e){
-    statusEl.textContent='❌ Erro ao publicar: '+e.message;
+    setStatus('❌ Erro ao publicar: '+e.message);
   }
 }
 
 async function admExport(){
   // Busca o HTML fonte diretamente — não usa outerHTML para evitar corrupção
   let src;
-  try{src=await fetch(location.href).then(r=>r.text());}
+  try{src=await fetch(location.origin+location.pathname+'?nocache='+Date.now()).then(r=>r.text());}
   catch{alert('Erro ao buscar o HTML fonte. Tente novamente.');return;}
   const tokenJSON=JSON.stringify(VALID_TOKENS);
   const tasksInner=JSON.stringify(state.tasks).slice(1,-1);
   let updated=src.replace(/const VALID_TOKENS = \[.*?\];/s,'const VALID_TOKENS = '+tokenJSON+';');
-  updated=updated.replace(/\/\/ ──TASKS_START──[\s\S]*?\/\/ ──TASKS_END──/,()=>'// ──TASKS_START──\n    '+tasksInner+'\n  ], // ──TASKS_END──');
+  updated=updated.replace(/\/\/ ──TASKS_START──[\s\S]*?\/\/ ──TASKS_END──/,()=>'// ──TASKS_START──
+    '+tasksInner+'
+  ], // ──TASKS_END──');
   const blob=new Blob([updated],{type:'text/html;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download='index.html';a.click();
