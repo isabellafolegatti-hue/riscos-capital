@@ -372,6 +372,8 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
     <tbody id="alert-tbody"></tbody></table></div>
     <div style="margin-top:14px">
       <button class="btn-send" onclick="sendDraftAlert()">✉️ Criar rascunho Gmail</button>
+      <button class="btn-send" style="background:#555" onclick="clearLS()">🗑 Limpar cache local</button>
+      <span id="ls-indicator" style="font-size:12px;margin-left:8px;"></span>
     </div>
     <div class="send-status" id="send-status"></div>
   </div>
@@ -679,7 +681,8 @@ function renderDays(weekKey){
 }
 
 function concludeTask(id){
-  const t=state.tasks.find(x=>x.id===id);if(!t)return;t.status='✅ Concluído';t.pct=100;refreshKPIs();
+  const t=state.tasks.find(x=>x.id===id);if(!t)return;t.status='✅ Concluído';t.pct=100;
+  saveToLS();refreshKPIs();
   const row=document.getElementById('row-'+id);
   if(row){row.className='task-row t-grn t-done';row.querySelector('.task-status').textContent='✅ Concluído';const pctWrap=row.querySelector('.task-pct-wrap');if(pctWrap)pctWrap.outerHTML='<div class="task-pct-wrap"><div class="task-pct-bar"><div class="task-pct-fill" style="width:100%;background:var(--green)"></div></div><div class="task-pct-num" style="color:var(--green)">✅</div></div>';row.querySelector('.btn-done').outerHTML='<span style="font-size:18px">✅</span>';}
   refreshAlertPanel();
@@ -852,7 +855,7 @@ function saveTask(){
   const prefix=PREFIXOS[dominio]||'XX';const existing=state.tasks.filter(t=>t.id.startsWith(prefix+'-')).length;const id=prefix+'-'+String(existing+1).padStart(3,'0');
   const dd=diasAte(prazo);const status=dd<0?'🔴 Atrasado':'⬜ Não iniciado';
   state.tasks.push({id,dominio,projeto,tarefa,responsavel:resp,prazo,status,pct:0,prioridade,obs,anexos});
-  refreshKPIs();refreshCurrentView();refreshAlertPanel();
+  saveToLS();refreshKPIs();refreshCurrentView();refreshAlertPanel();
   _anexoFileData=null;
   document.getElementById('f-tarefa').value='';document.getElementById('f-dominio').value='';document.getElementById('f-resp').value='';document.getElementById('f-prazo').value='';document.getElementById('f-obs').value='';document.getElementById('f-anexo').value='';document.getElementById('f-anexo-file-name').textContent='';switchAnexoMode('link');
   const aiDiv=document.getElementById('ai-response');aiDiv.style.display='block';aiDiv.textContent='✅ Tarefa '+id+' registrada! Prazo: '+new Date(prazo+'T12:00:00').toLocaleDateString('pt-BR')+'.';
@@ -875,7 +878,7 @@ function addAnexo(id){
   if(link){t.anexos.push({url:link,nome:''});added=true;}
   else if(_pendingAnexoFile[id]){const f=_pendingAnexoFile[id];t.anexos.push({url:f.url,nome:f.nome});delete _pendingAnexoFile[id];added=true;}
   if(!added){alert('Informe um link ou selecione um arquivo antes de adicionar.');return;}
-  refreshAlertPanel();
+  saveToLS();refreshAlertPanel();
   const btn=document.getElementById('addbtn-'+id);
   if(btn){btn.textContent='✓';btn.style.background='var(--green)';setTimeout(()=>renderUpdateList(document.querySelector('.update-search')?.value||''),800);}
 }
@@ -891,7 +894,7 @@ function updateAnexoFile(id,input){
 function removeAnexo(id,idx){
   const t=state.tasks.find(x=>x.id===id);if(!t)return;
   getAnexos(t);t.anexos.splice(idx,1);
-  refreshAlertPanel();
+  saveToLS();refreshAlertPanel();
   renderUpdateList(document.querySelector('.update-search')?.value||'');
 }
 
@@ -899,7 +902,7 @@ function updatePct(id,val){
   const t=state.tasks.find(x=>x.id===id);if(!t)return;const pct=Math.min(100,Math.max(0,parseInt(val)||0));t.pct=pct;
   if(pct===100)t.status='✅ Concluído';else if(pct>0)t.status='🔵 Em andamento';else t.status='⬜ Não iniciado';
   const sp=document.getElementById('ustatus-'+id);if(sp)sp.textContent=t.status;
-  refreshKPIs();refreshCurrentView();
+  saveToLS();refreshKPIs();refreshCurrentView();
 }
 
 function renderConcludeList(){
@@ -910,7 +913,7 @@ function renderConcludeList(){
 
 function concludeChecked(){
   document.querySelectorAll('#conclude-list input[type=checkbox]:checked').forEach(cb=>{const id=cb.id.replace('chk-','');const t=state.tasks.find(x=>x.id===id);if(t){t.status='✅ Concluído';t.pct=100;}});
-  refreshKPIs();refreshCurrentView();renderConcludeList();
+  saveToLS();refreshKPIs();refreshCurrentView();renderConcludeList();
 }
 
 // ─── MOBILE EXPAND ─────────────────────────────────────────────────────────────
@@ -1123,9 +1126,41 @@ async function admExport(){
   URL.revokeObjectURL(a.href);
 }
 
+// ─── PERSISTÊNCIA LOCAL (localStorage) ───────────────────────────────────────
+const LS_KEY = 'mt_riscos_tasks_v2';
+
+function saveToLS(){
+  try{
+    localStorage.setItem(LS_KEY, JSON.stringify(state.tasks));
+    const ind = document.getElementById('ls-indicator');
+    if(ind){ind.textContent='💾 Salvo localmente';ind.style.color='var(--green)';clearTimeout(ind._t);ind._t=setTimeout(()=>{ind.textContent='';},3000);}
+  }catch(e){console.warn('localStorage cheio',e);}
+}
+
+function loadFromLS(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(Array.isArray(parsed) && parsed.length > 0){
+        state.tasks = parsed;
+        return true;
+      }
+    }
+  }catch{}
+  return false;
+}
+
+function clearLS(){
+  if(!confirm('Limpar dados locais e recarregar tarefas do HTML publicado?'))return;
+  localStorage.removeItem(LS_KEY);
+  location.reload();
+}
+
 // ─── INIT ────────────────────────────────────────────────────────────────────
 function init(){
   if(!checkAccess())return;
+  loadFromLS(); // preferir dados do localStorage se existirem
   document.getElementById('topbar-date').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'}).replace(',','');
   state.tasks.forEach(t=>{if(!t.status.includes('Concluído')&&diasAte(t.prazo)<0&&!t.status.includes('Atrasado'))t.status='🔴 Atrasado';});
   refreshKPIs();renderMonths();renderTeamPanel();renderRespFilter();refreshAlertPanel();
